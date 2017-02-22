@@ -4,16 +4,16 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Import" />
+            android:icon="@drawable/ic_mode_edit_black_24dp"
+            android:title="Current" />
         <item
             android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Gallery" />
+            android:icon="@drawable/ic_mode_edit_black_24dp"
+            android:title="Resistance" />
         <item
             android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
+            android:icon="@drawable/ic_mode_edit_black_24dp"
+            android:title="Voltage" />
         <item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_menu_manage"
