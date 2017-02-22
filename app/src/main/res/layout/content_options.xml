@@ -13,8 +13,63 @@
     tools:context="com.type2labs.dmm.Options"
     tools:showIn="@layout/app_bar_options">
 
-    <TextView
+    <Button
+        android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button"
+        android:onClick="off"
+        android:text="turn off" />
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/button"
+        android:layout_below="@+id/textView2" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/listView"
+        android:layout_alignStart="@+id/listView"
+        android:layout_below="@+id/button4"
+        android:text="Paired devices:"
+        android:textColor="#ff34ff06"
+        android:textSize="25dp" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:onClick="on"
+        android:text="Turn On"
+        android:layout_below="@+id/textView"
+        android:layout_alignEnd="@+id/button4" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="visible"
+        android:text="Get visible"
+        android:layout_alignBaseline="@+id/button3"
+        android:layout_alignBottom="@+id/button3"
+        android:layout_toEndOf="@+id/button" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="list"
+        android:text="List devices"
+        android:layout_below="@+id/textView"
+        android:layout_toEndOf="@+id/button2" />
+
 </RelativeLayout>
