@@ -30,5 +30,8 @@
   ],
   "group": "stable",
   "dist": "precise",
-  "os": "linux"
+  "os": "linux",
+
+  notifications:
+    slack: descon:UcYH59TuYAy2wSC6fP8ktWri
 }
