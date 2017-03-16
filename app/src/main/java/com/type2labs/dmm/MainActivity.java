@@ -230,15 +230,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         onBluetoothStateChanged();
 
-        if (!mockDevicesEnabled) {
-            requestEnableBluetooth();
-        }
+//        Fragment frag = getFragmentManager().findFragmentById(R.id.sidebar_text_version);
+//        ((TextView) frag.getView().findViewById(R.id.sidebar_text_version)).setText("Version: "+ getPackageName());
     }
 
     private void updateParamsFromSettings() {
         recordingEnabled = getSharedPreferences().getBoolean(getString(R.string.pref_record), false);
         defaultEmail = getSharedPreferences().getString(getString(R.string.pref_default_email), "");
-        mockDevicesEnabled = getSharedPreferences().getBoolean(getString(R.string.pref_enable_mock_devices), false);
     }
 
     private void startDeviceListActivity() {

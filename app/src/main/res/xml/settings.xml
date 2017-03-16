@@ -6,20 +6,10 @@
         android:key="@string/pref_record"
         android:summary="@string/summary_record"
         android:title="@string/title_record" />
-    />
 
     <EditTextPreference
         android:checked="false"
         android:key="@string/pref_default_email"
         android:summary="@string/summary_default_email"
         android:title="@string/title_default_email" />
-    />
-
-    <CheckBoxPreference
-        android:checked="false"
-        android:key="@string/pref_enable_mock_devices"
-        android:summary="@string/summary_enable_mock_devices"
-        android:title="@string/title_enable_mock_devices" />
-    />
-
 </PreferenceScreen>
