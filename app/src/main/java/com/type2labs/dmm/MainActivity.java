@@ -25,6 +25,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -287,9 +288,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     ListDevicesActivity.ConnectorType connectorType =
                             (ListDevicesActivity.ConnectorType) data.getSerializableExtra(connectorTypeMsgId);
                     MessageHandler messageHandler = new MessageHandlerImpl(mHandler);
-                            String addressMsgId = ListDevicesActivity.Message.BluetoothAddress.toString();
-                            String address = data.getStringExtra(addressMsgId);
-                            mDeviceConnector = new BluetoothDeviceConnector(messageHandler, address);
+                    String addressMsgId = ListDevicesActivity.Message.BluetoothAddress.toString();
+                    String address = data.getStringExtra(addressMsgId);
+                    mDeviceConnector = new BluetoothDeviceConnector(messageHandler, address);
                     mDeviceConnector.connect();
                 }
                 break;
@@ -418,6 +419,22 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        return false;
+        switch (item.getItemId()) {
+            case R.id.nav_current:
+                sendMessage("Amps");
+                break;
+            case R.id.nav_resistance:
+                sendMessage("Resistance");
+                break;
+            case R.id.nav_voltage:
+                sendMessage("Volts");
+                break;
+            default:
+                break;
+        }
+
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
