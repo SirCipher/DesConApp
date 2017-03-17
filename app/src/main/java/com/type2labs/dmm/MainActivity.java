@@ -162,8 +162,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 recordingEnabled = isChecked;
+                Log.d("MainActivity", "Recording: " + recordingEnabled);
             }
         });
+
 
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
@@ -369,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 sendMessage("Volts");
                 break;
             case R.id.menu_email_recorded_data:
-                if (recording.length() > 0) {
+                if (recording.length() > 0 && recordingEnabled) {
                     launchEmailApp(EmailUtils.prepareDeviceRecording(this, deviceName, recording.toString()));
                 } else if (recordingEnabled) {
                     Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
