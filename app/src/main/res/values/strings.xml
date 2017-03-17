@@ -52,5 +52,6 @@
     <string name="nav_resistance">Resistance</string>
     <string name="nav_voltage">Voltage</string>
     <string name="nav_data_logging">Data logging</string>
+    <string name="nav_chart_realtime">Real-time graph</string>
 
 </resources>

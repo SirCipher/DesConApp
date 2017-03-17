@@ -21,6 +21,12 @@
             android:icon="@android:drawable/ic_dialog_email"
             android:title="@string/menu_email_recorded_data" />
         <item
+            android:id="@+id/toggle_graph"
+            android:icon="@drawable/ic_multiline_chart_black_24dp"
+            android:title="@string/nav_chart_realtime"
+            app:actionLayout="@layout/switch_item" />
+
+        <item
             android:id="@+id/toggle_logging"
             android:icon="@android:drawable/ic_menu_save"
             android:title="@string/nav_data_logging"

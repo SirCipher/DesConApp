@@ -145,28 +145,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        initNav();
+        initUI();
+        onBluetoothStateChanged();
+    }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        Menu menuNav = navigationView.getMenu();
-        Switch toggleEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_logging_switch);
-        toggleEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                recordingEnabled = isChecked;
-                Log.d("MainActivity", "Recording: " + recordingEnabled);
-            }
-        });
-
-
+    private void initUI() {
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
 
@@ -189,7 +173,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 onPausedStateChanged();
             }
         });
-
         mToolbarPlayButton = (ImageButton) findViewById(R.id.toolbar_btn_play);
         mToolbarPlayButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -197,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 onPausedStateChanged();
             }
         });
-
         mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.activity_message);
         ListView mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
@@ -214,8 +196,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 sendMessage(view.getText());
             }
         });
+    }
 
-        onBluetoothStateChanged();
+    private void initNav() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Menu menuNav = navigationView.getMenu();
+        Switch toggleEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
+        toggleEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                recordingEnabled = isChecked;
+                Log.d("MainActivity", "Recording: " + recordingEnabled);
+            }
+        });
     }
 
     private void startDeviceListActivity() {
@@ -360,6 +363,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         switch (item.getItemId()) {
             case R.id.nav_current:
                 sendMessage("Amps");
@@ -382,8 +386,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             default:
                 break;
         }
-
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }

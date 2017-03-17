@@ -3,7 +3,7 @@
     android:layout_height="match_parent">
 
     <Switch
-        android:id="@+id/toggle_logging_switch"
+        android:id="@+id/toggle_switch_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
