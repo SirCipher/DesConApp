@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean pendingRequestEnableBt = false;
     // controlled by user settings
     private boolean recordingEnabled = false;
-    private String defaultEmail;
     private boolean mockDevicesEnabled;
     private String deviceName;
     // The Handler that gets information back from the BluetoothService
@@ -390,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.menu_email_recorded_data:
                 if (recording.length() > 0) {
-                    launchEmailApp(EmailUtils.prepareDeviceRecording(this, defaultEmail, deviceName, recording.toString()));
+                    launchEmailApp(EmailUtils.prepareDeviceRecording(this, deviceName, recording.toString()));
                 } else if (recordingEnabled) {
                     Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
                 } else {

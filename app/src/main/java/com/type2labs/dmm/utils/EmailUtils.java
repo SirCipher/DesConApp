@@ -29,7 +29,7 @@ public class EmailUtils {
         // prevent creating utility class
     }
 
-    public static Intent prepareDeviceRecording(Context context, String defaultEmail, String deviceName, String recordedContent) {
+    public static Intent prepareDeviceRecording(Context context, String deviceName, String recordedContent) {
         String subject = String.format(context.getString(R.string.fmt_subject_recorded_data), deviceName);
         String messageHeader = String.format(context.getString(R.string.fmt_recorded_from), deviceName);
 
@@ -38,7 +38,7 @@ public class EmailUtils {
 
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType(MESSAGE_TYPE);
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{defaultEmail});
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{});
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         if (!addAttachmentToIntent(context, deviceName, recordedContent, intent)) {
             builder.append(recordedContent).append(HORIZONTAL_RULE);
