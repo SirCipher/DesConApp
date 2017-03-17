@@ -31,6 +31,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 import com.type2labs.dmm.bluetooth.BluetoothDeviceConnector;
 import com.type2labs.dmm.bluetooth.DeviceConnector;
 import com.type2labs.dmm.bluetooth.ListDevicesActivity;
@@ -66,15 +69,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // State variables
     private boolean paused = false;
     private boolean connected = false;
-    // do not resend request to enable Bluetooth
-    // if there is a request already in progress
-    // See: https://code.google.com/p/android/issues/detail?id=24931#c1
     private boolean pendingRequestEnableBt = false;
     // controlled by user settings
     private boolean recordingEnabled = false;
     private boolean mockDevicesEnabled;
     private String deviceName;
-
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -124,7 +123,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
-
+    // Graphing
+    private GraphView graph;
+    private boolean graphEnabled = false;
     private TextView.OnEditorActionListener mWriteListener =
             new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
@@ -145,9 +146,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         setContentView(R.layout.activity_main);
+
         initNav();
         initUI();
+        initGraph();
         onBluetoothStateChanged();
+    }
+
+    private void initGraph() {
+        graph = (GraphView) findViewById(R.id.graph);
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[]{
+                new DataPoint(0, 1),
+                new DataPoint(1, 5),
+                new DataPoint(2, 3),
+                new DataPoint(3, 2),
+                new DataPoint(4, 6)
+        });
+        graph.addSeries(series);
     }
 
     private void initUI() {
@@ -217,6 +232,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 recordingEnabled = isChecked;
                 Log.d("MainActivity", "Recording: " + recordingEnabled);
+            }
+        });
+        Switch graphEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_graph).getActionView().findViewById(R.id.toggle_switch_item);
+        graphEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                graphEnabled = isChecked;
+                graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
+                Log.d("MainActivity", "Graphing: " + recordingEnabled);
             }
         });
     }

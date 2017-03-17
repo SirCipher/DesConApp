@@ -30,6 +30,12 @@
         android:maxLines="1"
         android:text="@string/btstatus_not_connected" />
 
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_height="200dip"
+        android:visibility="gone" />
+
     <ListView
         android:id="@+id/in"
         android:layout_width="fill_parent"
