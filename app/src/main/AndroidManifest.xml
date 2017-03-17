@@ -30,10 +30,5 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_settings_activity"
             android:theme="@android:style/Theme.Dialog" />
-        <activity
-            android:name=".GraphActivity"
-            android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_graph_activity"
-            android:theme="@android:style/Theme.Dialog" />
     </application>
 </manifest>

@@ -77,6 +77,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean recordingEnabled = false;
     private boolean mockDevicesEnabled;
     private String deviceName;
+    // Graphing
+    private GraphView graph;
+    private boolean graphEnabled = false;
+    private Graph graphUtil;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -122,13 +126,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if (recordingEnabled) {
                         recording.append(line).append("\n");
                     }
+                    graphUtil.addData(line);
                     break;
             }
         }
     };
-    // Graphing
-    private GraphView graph;
-    private boolean graphEnabled = false;
     private TextView.OnEditorActionListener mWriteListener =
             new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
@@ -139,7 +141,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             };
     private LineGraphSeries<DataPoint> series;
-    private int lastX = 0;
+
+    private void addDataToGraph() {
+
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -160,20 +165,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void initGraph() {
         graph = (GraphView) findViewById(R.id.graph);
-
-        series = new LineGraphSeries<DataPoint>();
-        graph.addSeries(series);
-        // customize a little bit viewport
-//        Viewport viewport = graph.getViewport();
-//        viewport.setYAxisBoundsManual(true);
-//        viewport.setMinY(0);
-//        viewport.setMaxY(10);
-//        viewport.setScrollable(true);
-
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(4);
-
+        series = new LineGraphSeries<>();
+        graphUtil = new Graph(graph, series);
     }
 
     @Override
@@ -185,30 +178,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void run() {
                 // we add 100 new entries
-                for (int i = 0; i < 100; i++) {
-                    runOnUiThread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            addEntry();
-                        }
-                    });
-
-                    // sleep to slow down the add of entries
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        // manage error ...
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        graphUtil.addRandom();
                     }
+                });
+
+                // sleep to slow down the add of entries
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    // manage error ...
                 }
             }
-        }).start();
-    }
-
-    // add random data to graph
-    private void addEntry() {
-        // here, we choose to display max 10 points on the viewport and we scroll to end
-        series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), true, 10);
+        }
+        ).start();
     }
 
     private void initUI() {
