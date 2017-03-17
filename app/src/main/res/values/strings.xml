@@ -48,5 +48,9 @@
     <string name="msg_email_not_sent">Email not sent. Check your email settings.</string>
     <string name="mobile_dmm">Mobile-DMM</string>
     <string name="version_no">Version: #####</string>
+    <string name="nav_current">Current</string>
+    <string name="nav_resistance">Resistance</string>
+    <string name="nav_voltage">Voltage</string>
+    <string name="nav_data_logging">Data logging</string>
 
 </resources>

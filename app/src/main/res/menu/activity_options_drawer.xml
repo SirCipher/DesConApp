@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_current"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="Current" />
+            android:title="@string/nav_current" />
         <item
             android:id="@+id/nav_resistance"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="Resistance" />
+            android:title="@string/nav_resistance" />
         <item
             android:id="@+id/nav_voltage"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="Voltage" />
+            android:title="@string/nav_voltage" />
         <item
-            android:id="@+id/nav_tools"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
+            android:id="@+id/menu_email_recorded_data"
+            android:icon="@android:drawable/ic_dialog_email"
+            android:title="@string/menu_email_recorded_data" />
+        <item
+            android:id="@+id/toggle_logging"
+            android:icon="@android:drawable/ic_menu_save"
+            android:title="@string/nav_data_logging"
+            app:actionLayout="@layout/switch_item" />
     </group>
 </menu>

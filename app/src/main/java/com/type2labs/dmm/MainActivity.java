@@ -32,8 +32,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -55,7 +53,7 @@ import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
 
 
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final boolean D = true;
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     // See: https://code.google.com/p/android/issues/detail?id=24931#c1
     private boolean pendingRequestEnableBt = false;
     // controlled by user settings
-    private boolean recordingEnabled;
+    private boolean recordingEnabled = false;
     private String defaultEmail;
     private boolean mockDevicesEnabled;
     private String deviceName;
@@ -159,20 +157,25 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (savedInstanceState != null) {
             pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
         }
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        updateParamsFromSettings();
+//        Switch recordingSwitch = (Switch) findViewById(R.id.toggle_logging);
+//        recordingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                recordingEnabled = isChecked;
+//            }
+//        });
 
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
@@ -223,14 +226,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         });
 
         onBluetoothStateChanged();
-
-//        Fragment frag = getFragmentManager().findFragmentById(R.id.sidebar_text_version);
-//        ((TextView) frag.getView().findViewById(R.id.sidebar_text_version)).setText("Version: "+ getPackageName());
-    }
-
-    private void updateParamsFromSettings() {
-        recordingEnabled = getSharedPreferences().getBoolean(getString(R.string.pref_record), false);
-        defaultEmail = getSharedPreferences().getString(getString(R.string.pref_default_email), "");
     }
 
     private void startDeviceListActivity() {
@@ -309,34 +304,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     //Toast.makeText(this, R.string.msg_email_not_sent, Toast.LENGTH_LONG).show();
                 }
                 break;
-            case MENU_SETTINGS:
-                updateParamsFromSettings();
-                break;
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.menu_settings) {
-            startActivityForResult(SettingsActivity.class, MENU_SETTINGS);
-        } else if (itemId == R.id.menu_email_recorded_data) {
-            if (recording.length() > 0) {
-                launchEmailApp(EmailUtils.prepareDeviceRecording(this, defaultEmail, deviceName, recording.toString()));
-            } else if (recordingEnabled) {
-                Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, R.string.msg_nothing_recorded_recording_disabled, Toast.LENGTH_LONG).show();
-            }
-        }
-        return false;
     }
 
     private void launchEmailApp(Intent intent) {
@@ -393,13 +361,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String prefName) {
-        Log.d(TAG, "++onSharedPreferenceChanged");
-        if (prefName.equals(getString(R.string.pref_record))) {
-            updateParamsFromSettings();
-        }
-    }
 
     private SharedPreferences getSharedPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(this);
@@ -407,13 +368,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     @Override
     protected void onResume() {
-        getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
     }
 
@@ -428,6 +387,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 break;
             case R.id.nav_voltage:
                 sendMessage("Volts");
+                break;
+            case R.id.menu_email_recorded_data:
+                if (recording.length() > 0) {
+                    launchEmailApp(EmailUtils.prepareDeviceRecording(this, defaultEmail, deviceName, recording.toString()));
+                } else if (recordingEnabled) {
+                    Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, R.string.msg_nothing_recorded_recording_disabled, Toast.LENGTH_LONG).show();
+                }
                 break;
             default:
                 break;
