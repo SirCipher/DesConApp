@@ -9,9 +9,9 @@ import java.util.Set;
  */
 
 public interface AdapterWrapper {
-    Set<BluetoothDevice> getBondedDevices();
-
     void cancelDiscovery();
+
+    Set<BluetoothDevice> getBondedDevices();
 
     boolean isDiscovering();
 

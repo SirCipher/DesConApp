@@ -10,18 +10,18 @@ public interface MessageHandler {
     int MSG_LINE_READ = 21;
     int MSG_BYTES_WRITTEN = 22;
 
-    void sendLineRead(String line);
-
     void sendBytesWritten(byte[] bytes);
-
-    void sendConnectingTo(String deviceName);
 
     void sendConnectedTo(String deviceName);
 
-    void sendNotConnected();
+    void sendConnectingTo(String deviceName);
 
     void sendConnectionFailed();
 
     void sendConnectionLost();
+
+    void sendLineRead(String line);
+
+    void sendNotConnected();
 
 }

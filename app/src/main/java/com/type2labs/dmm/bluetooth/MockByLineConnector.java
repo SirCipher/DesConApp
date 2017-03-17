@@ -31,20 +31,6 @@ public class MockByLineConnector implements DeviceConnector {
         }
         running = true;
         new Thread(new Runnable() {
-            @Override
-            public void run() {
-                messageHandler.sendConnectingTo(filename);
-
-                String mockFilePath = SAMPLES_SUBDIR + "/" + filename;
-                List<String> lines = AssetUtils.readLinesFromStream(assets, mockFilePath);
-
-                if (!lines.isEmpty()) {
-                    loopLinesUntilStopped(lines);
-                }
-
-                messageHandler.sendConnectionLost();
-            }
-
             private void loopLinesUntilStopped(List<String> lines) {
                 messageHandler.sendConnectedTo(filename);
 
@@ -61,6 +47,20 @@ public class MockByLineConnector implements DeviceConnector {
                         }
                     }
                 }
+            }
+
+            @Override
+            public void run() {
+                messageHandler.sendConnectingTo(filename);
+
+                String mockFilePath = SAMPLES_SUBDIR + "/" + filename;
+                List<String> lines = AssetUtils.readLinesFromStream(assets, mockFilePath);
+
+                if (!lines.isEmpty()) {
+                    loopLinesUntilStopped(lines);
+                }
+
+                messageHandler.sendConnectionLost();
             }
         }).start();
     }

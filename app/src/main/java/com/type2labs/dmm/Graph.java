@@ -24,18 +24,18 @@ public class Graph {
         initGraph();
     }
 
-    private void initGraph() {
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(4);
+    void addData(String value) {
+        series.appendData(new DataPoint(lastX++, Double.parseDouble(ValueUtils.getValue(value))), true, 10);
     }
 
     void addRandom() {
         series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), true, 10);
     }
 
-    void addData(String value) {
-        series.appendData(new DataPoint(lastX++, Double.parseDouble(ValueUtils.getValue(value))), true, 10);
+    private void initGraph() {
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(4);
     }
 
     private void removeOldValues() {

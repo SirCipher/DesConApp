@@ -9,9 +9,12 @@ public class MessageHandlerImpl implements MessageHandler {
         this.handler = handler;
     }
 
-    @Override
-    public void sendLineRead(String line) {
-        handler.obtainMessage(MSG_LINE_READ, -1, -1, line).sendToTarget();
+    private void sendMessage(int messageId, String deviceName) {
+        handler.obtainMessage(messageId, -1, -1, deviceName).sendToTarget();
+    }
+
+    private void sendMessage(int messageId) {
+        handler.obtainMessage(messageId).sendToTarget();
     }
 
     @Override
@@ -20,18 +23,13 @@ public class MessageHandlerImpl implements MessageHandler {
     }
 
     @Override
-    public void sendConnectingTo(String deviceName) {
-        sendMessage(MSG_CONNECTING, deviceName);
-    }
-
-    @Override
     public void sendConnectedTo(String deviceName) {
         sendMessage(MSG_CONNECTED, deviceName);
     }
 
     @Override
-    public void sendNotConnected() {
-        sendMessage(MSG_NOT_CONNECTED);
+    public void sendConnectingTo(String deviceName) {
+        sendMessage(MSG_CONNECTING, deviceName);
     }
 
     @Override
@@ -44,11 +42,13 @@ public class MessageHandlerImpl implements MessageHandler {
         sendMessage(MSG_CONNECTION_LOST);
     }
 
-    private void sendMessage(int messageId, String deviceName) {
-        handler.obtainMessage(messageId, -1, -1, deviceName).sendToTarget();
+    @Override
+    public void sendLineRead(String line) {
+        handler.obtainMessage(MSG_LINE_READ, -1, -1, line).sendToTarget();
     }
 
-    private void sendMessage(int messageId) {
-        handler.obtainMessage(messageId).sendToTarget();
+    @Override
+    public void sendNotConnected() {
+        sendMessage(MSG_NOT_CONNECTED);
     }
 }

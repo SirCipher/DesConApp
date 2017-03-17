@@ -145,28 +145,6 @@ public class ListDevicesActivity extends Activity {
         this.unregisterReceiver(mReceiver);
     }
 
-    /**
-     * Start device discovery with the BluetoothAdapter
-     */
-    private void doDiscovery() {
-        if (D) Log.d(TAG, "doDiscovery()");
-
-        mNewDevicesArrayAdapter.clear();
-        mNewDevicesSet.clear();
-
-        setProgressBarIndeterminateVisibility(true);
-
-        findViewById(R.id.label_none_found).setVisibility(View.GONE);
-        findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
-        findViewById(R.id.label_scanning).setVisibility(View.VISIBLE);
-
-        if (mBtAdapter.isDiscovering()) {
-            mBtAdapter.cancelDiscovery();
-        }
-
-        mBtAdapter.startDiscovery();
-    }
-
     public static enum ConnectorType {
         Bluetooth,
         Mock
@@ -179,15 +157,15 @@ public class ListDevicesActivity extends Activity {
     }
 
     private abstract static class DeviceListEntry {
-        @Override
-        public String toString() {
-            return String.format("%s%n%s", getFirstLine(), getSecondLine());
-        }
-
         protected abstract String getFirstLine();
 
         protected String getSecondLine() {
             return "";
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s%n%s", getFirstLine(), getSecondLine());
         }
     }
 
@@ -257,5 +235,27 @@ public class ListDevicesActivity extends Activity {
             setResult(Activity.RESULT_OK, intent);
             finish();
         }
+    }
+
+    /**
+     * Start device discovery with the BluetoothAdapter
+     */
+    private void doDiscovery() {
+        if (D) Log.d(TAG, "doDiscovery()");
+
+        mNewDevicesArrayAdapter.clear();
+        mNewDevicesSet.clear();
+
+        setProgressBarIndeterminateVisibility(true);
+
+        findViewById(R.id.label_none_found).setVisibility(View.GONE);
+        findViewById(R.id.title_new_devices).setVisibility(View.VISIBLE);
+        findViewById(R.id.label_scanning).setVisibility(View.VISIBLE);
+
+        if (mBtAdapter.isDiscovering()) {
+            mBtAdapter.cancelDiscovery();
+        }
+
+        mBtAdapter.startDiscovery();
     }
 }

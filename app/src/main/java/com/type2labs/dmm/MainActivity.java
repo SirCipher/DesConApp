@@ -153,23 +153,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "++onCreate");
-        super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
-        }
-
-        setContentView(R.layout.activity_main);
-
-        initNav();
-        initUI();
-        initGraph();
-        onBluetoothStateChanged();
-    }
-
     private void initGraph() {
         graph = (GraphView) findViewById(R.id.graph);
 
@@ -186,35 +169,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(4);
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // we're going to simulate real time with thread that append data to the graph
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                // we add 100 new entries
-                for (int i = 0; i < 100; i++) {
-                    runOnUiThread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            addEntry();
-                        }
-                    });
-
-                    // sleep to slow down the add of entries
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        // manage error ...
-                    }
-                }
-            }
-        }).start();
     }
 
     // add random data to graph
@@ -325,12 +279,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return BluetoothAdapter.getDefaultAdapter();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDeviceConnector.disconnect();
-    }
-
     private void sendMessage(CharSequence chars) {
         if (chars.length() > 0) {
             mDeviceConnector.sendAsciiMessage(chars);
@@ -341,45 +289,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String formatStatusMessage(int formatResId, Object obj) {
         String deviceName = (String) obj;
         return getString(formatResId, deviceName);
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG, "onActivityResult " + resultCode);
-        switch (requestCode) {
-            case REQUEST_CONNECT_DEVICE:
-                // When DeviceListActivity returns with connection info to connect devices
-                // TODO it would be better to return a Parcelable instance of a DeviceConnector,
-                //      as in the current approach both the sender and the receiver must know
-                //      how to create a DeviceConnector from its pieces (constructor args).
-                //      It would be better if that logic was in one place,
-                //      and definitely not in this activity
-                if (resultCode == Activity.RESULT_OK) {
-                    String connectorTypeMsgId = ListDevicesActivity.Message.DeviceConnectorType.toString();
-                    ListDevicesActivity.ConnectorType connectorType =
-                            (ListDevicesActivity.ConnectorType) data.getSerializableExtra(connectorTypeMsgId);
-                    MessageHandler messageHandler = new MessageHandlerImpl(mHandler);
-                    String addressMsgId = ListDevicesActivity.Message.BluetoothAddress.toString();
-                    String address = data.getStringExtra(addressMsgId);
-                    mDeviceConnector = new BluetoothDeviceConnector(messageHandler, address);
-                    mDeviceConnector.connect();
-                }
-                break;
-            case REQUEST_ENABLE_BT:
-                // When the request to enable Bluetooth returns
-                pendingRequestEnableBt = false;
-                if (resultCode != Activity.RESULT_OK) {
-                    Log.i(TAG, "BT not enabled");
-                }
-                break;
-            case REQUEST_LAUNCH_EMAIL_APP:
-                if (resultCode == Activity.RESULT_OK) {
-                    Toast.makeText(this, R.string.msg_email_sent, Toast.LENGTH_LONG).show();
-                } else {
-                    // TODO resultCode is NEVER ok, even when email successfully sent :(
-                    //Toast.makeText(this, R.string.msg_email_not_sent, Toast.LENGTH_LONG).show();
-                }
-                break;
-        }
     }
 
     private void launchEmailApp(Intent intent) {
@@ -426,11 +335,100 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "onActivityResult " + resultCode);
+        switch (requestCode) {
+            case REQUEST_CONNECT_DEVICE:
+                // When DeviceListActivity returns with connection info to connect devices
+                // TODO it would be better to return a Parcelable instance of a DeviceConnector,
+                //      as in the current approach both the sender and the receiver must know
+                //      how to create a DeviceConnector from its pieces (constructor args).
+                //      It would be better if that logic was in one place,
+                //      and definitely not in this activity
+                if (resultCode == Activity.RESULT_OK) {
+                    String connectorTypeMsgId = ListDevicesActivity.Message.DeviceConnectorType.toString();
+                    ListDevicesActivity.ConnectorType connectorType =
+                            (ListDevicesActivity.ConnectorType) data.getSerializableExtra(connectorTypeMsgId);
+                    MessageHandler messageHandler = new MessageHandlerImpl(mHandler);
+                    String addressMsgId = ListDevicesActivity.Message.BluetoothAddress.toString();
+                    String address = data.getStringExtra(addressMsgId);
+                    mDeviceConnector = new BluetoothDeviceConnector(messageHandler, address);
+                    mDeviceConnector.connect();
+                }
+                break;
+            case REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                pendingRequestEnableBt = false;
+                if (resultCode != Activity.RESULT_OK) {
+                    Log.i(TAG, "BT not enabled");
+                }
+                break;
+            case REQUEST_LAUNCH_EMAIL_APP:
+                if (resultCode == Activity.RESULT_OK) {
+                    Toast.makeText(this, R.string.msg_email_sent, Toast.LENGTH_LONG).show();
+                } else {
+                    // TODO resultCode is NEVER ok, even when email successfully sent :(
+                    //Toast.makeText(this, R.string.msg_email_not_sent, Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "++onSaveInstanceState");
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // we're going to simulate real time with thread that append data to the graph
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                // we add 100 new entries
+                for (int i = 0; i < 100; i++) {
+                    runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            addEntry();
+                        }
+                    });
+
+                    // sleep to slow down the add of entries
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        // manage error ...
+                    }
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "++onCreate");
+        super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
+        }
+
+        setContentView(R.layout.activity_main);
+
+        initNav();
+        initUI();
+        initGraph();
+        onBluetoothStateChanged();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mDeviceConnector.disconnect();
     }
 
 //    @Override
@@ -439,8 +437,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //    }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "++onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
     }
 
     @Override

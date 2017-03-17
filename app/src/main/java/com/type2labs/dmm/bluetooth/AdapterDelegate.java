@@ -15,13 +15,13 @@ public class AdapterDelegate implements AdapterWrapper {
     }
 
     @Override
-    public Set<BluetoothDevice> getBondedDevices() {
-        return adapter.getBondedDevices();
+    public void cancelDiscovery() {
+        adapter.cancelDiscovery();
     }
 
     @Override
-    public void cancelDiscovery() {
-        adapter.cancelDiscovery();
+    public Set<BluetoothDevice> getBondedDevices() {
+        return adapter.getBondedDevices();
     }
 
     @Override

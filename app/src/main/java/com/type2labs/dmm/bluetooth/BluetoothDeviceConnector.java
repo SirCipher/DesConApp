@@ -49,6 +49,158 @@ public class BluetoothDeviceConnector implements DeviceConnector {
     }
 
     /**
+     * This thread runs while attempting to make an outgoing connection
+     * with a device. It runs straight through; the connection either
+     * succeeds or fails.
+     */
+    private class ConnectThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final BluetoothDevice mmDevice;
+
+        public ConnectThread(BluetoothDevice device) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+            mmDevice = device;
+            BluetoothSocket tmp = null;
+
+            Log.i(TAG, "calling device.createRfcommSocket with channel " + CHANNEL + " ...");
+            try {
+                // call hidden method, see BluetoothDevice source code for more details:
+                // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/bluetooth/BluetoothDevice.java
+                Method m = device.getClass().getMethod("createRfcommSocket", int.class);
+                tmp = (BluetoothSocket) m.invoke(device, CHANNEL);
+                Log.i(TAG, "setting socket to result of createRfcommSocket");
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
+            }
+            mmSocket = tmp;
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "close() of connect socket failed", e);
+            }
+        }
+
+        public void run() {
+            Log.i(TAG, "BEGIN mConnectThread");
+            setName("ConnectThread");
+
+            // Always cancel discovery because it will slow down a connection
+            mAdapter.cancelDiscovery();
+
+            // Make a connection to the BluetoothSocket
+            try {
+                // This is a blocking call and will only return on a
+                // successful connection or an exception
+                mmSocket.connect();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage(), e);
+                connectionFailed();
+                try {
+                    mmSocket.close();
+                } catch (IOException e2) {
+                    Log.e(TAG, "unable to close() socket during connection failure", e2);
+                }
+                return;
+            }
+
+            // Reset the ConnectThread because we're done
+            synchronized (BluetoothDeviceConnector.this) {
+                mConnectThread = null;
+            }
+
+            // Start the connected thread
+            connected(mmSocket, mmDevice);
+        }
+    }
+
+    /**
+     * This thread runs during a connection with a remote device.
+     * It handles all incoming and outgoing transmissions.
+     */
+    private class ConnectedThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+        private boolean stop = false;
+        private boolean hasReadAnything = false;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            Log.d(TAG, "create ConnectedThread");
+            mmSocket = socket;
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            // Get the BluetoothSocket input and output streams
+            try {
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) {
+                Log.e(TAG, "temp sockets not created", e);
+            }
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "close() of connect socket failed", e);
+            }
+        }
+
+        public void shutdown() {
+            stop = true;
+            if (!hasReadAnything) return;
+            if (mmInStream != null) {
+                try {
+                    mmInStream.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "close() of InputStream failed.");
+                }
+            }
+        }
+
+        /**
+         * Write to the connected OutStream.
+         *
+         * @param bytes The bytes to write
+         */
+        public void write(byte[] bytes) {
+            try {
+                mmOutStream.write(bytes);
+                mHandler.sendBytesWritten(bytes);
+            } catch (IOException e) {
+                Log.e(TAG, "Exception during write", e);
+            }
+        }
+
+        public void run() {
+            Log.i(TAG, "BEGIN mConnectedThread");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(mmInStream));
+
+            while (!stop) {
+                try {
+                    String line = reader.readLine();
+                    if (line != null) {
+                        mHandler.sendLineRead(line);
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "disconnected", e);
+                    connectionLost();
+                    break;
+                }
+            }
+        }
+
+
+    }
+
+    /**
      * Set the current state of the connection
      *
      * @param state An integer defining the current connection state
@@ -62,10 +214,71 @@ public class BluetoothDeviceConnector implements DeviceConnector {
         return BluetoothAdapter.getDefaultAdapter();
     }
 
+    /**
+     * Write to the ConnectedThread in an unsynchronized manner
+     *
+     * @param out The bytes to write
+     * @see ConnectedThread#write(byte[])
+     */
+    private void write(byte[] out) {
+        // Create temporary object
+        ConnectedThread r;
+        // Synchronize a copy of the ConnectedThread
+        synchronized (this) {
+            if (mState != STATE_CONNECTED) return;
+            r = mConnectedThread;
+        }
+        // Perform the write unsynchronized
+        r.write(out);
+    }
+
+    /**
+     * Indicate that the connection attempt failed and notify the UI Activity.
+     */
+    private void connectionFailed() {
+        setState(STATE_NONE);
+        mHandler.sendConnectionFailed();
+    }
+
+    /**
+     * Indicate that the connection was lost and notify the UI Activity.
+     */
+    private void connectionLost() {
+        setState(STATE_NONE);
+        mHandler.sendConnectionLost();
+    }
+
     @Override
     public synchronized void connect() {
         BluetoothDevice device = getBluetoothAdapter().getRemoteDevice(mAddress);
         connect(device);
+    }
+
+    /**
+     * Stop all threads
+     */
+    @Override
+    public synchronized void disconnect() {
+        if (D) Log.d(TAG, "shutdown");
+
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+
+        if (mConnectedThread != null) {
+            mConnectedThread.shutdown();
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+        setState(STATE_NONE);
+        mHandler.sendNotConnected();
+    }
+
+    @Override
+    public void sendAsciiMessage(CharSequence chars) {
+        write((chars.toString() + "\n").getBytes());
     }
 
     /**
@@ -136,217 +349,5 @@ public class BluetoothDeviceConnector implements DeviceConnector {
 
         setState(STATE_CONNECTED);
         mHandler.sendConnectedTo(device.getName());
-    }
-
-    /**
-     * Stop all threads
-     */
-    @Override
-    public synchronized void disconnect() {
-        if (D) Log.d(TAG, "shutdown");
-
-        if (mConnectThread != null) {
-            mConnectThread.cancel();
-            mConnectThread = null;
-        }
-
-        if (mConnectedThread != null) {
-            mConnectedThread.shutdown();
-            mConnectedThread.cancel();
-            mConnectedThread = null;
-        }
-
-        setState(STATE_NONE);
-        mHandler.sendNotConnected();
-    }
-
-    @Override
-    public void sendAsciiMessage(CharSequence chars) {
-        write((chars.toString() + "\n").getBytes());
-    }
-
-    /**
-     * Write to the ConnectedThread in an unsynchronized manner
-     *
-     * @param out The bytes to write
-     * @see ConnectedThread#write(byte[])
-     */
-    private void write(byte[] out) {
-        // Create temporary object
-        ConnectedThread r;
-        // Synchronize a copy of the ConnectedThread
-        synchronized (this) {
-            if (mState != STATE_CONNECTED) return;
-            r = mConnectedThread;
-        }
-        // Perform the write unsynchronized
-        r.write(out);
-    }
-
-    /**
-     * Indicate that the connection attempt failed and notify the UI Activity.
-     */
-    private void connectionFailed() {
-        setState(STATE_NONE);
-        mHandler.sendConnectionFailed();
-    }
-
-    /**
-     * Indicate that the connection was lost and notify the UI Activity.
-     */
-    private void connectionLost() {
-        setState(STATE_NONE);
-        mHandler.sendConnectionLost();
-    }
-
-
-    /**
-     * This thread runs while attempting to make an outgoing connection
-     * with a device. It runs straight through; the connection either
-     * succeeds or fails.
-     */
-    private class ConnectThread extends Thread {
-        private final BluetoothSocket mmSocket;
-        private final BluetoothDevice mmDevice;
-
-        public ConnectThread(BluetoothDevice device) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-            mmDevice = device;
-            BluetoothSocket tmp = null;
-
-            Log.i(TAG, "calling device.createRfcommSocket with channel " + CHANNEL + " ...");
-            try {
-                // call hidden method, see BluetoothDevice source code for more details:
-                // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/bluetooth/BluetoothDevice.java
-                Method m = device.getClass().getMethod("createRfcommSocket", int.class);
-                tmp = (BluetoothSocket) m.invoke(device, CHANNEL);
-                Log.i(TAG, "setting socket to result of createRfcommSocket");
-            } catch (Exception e) {
-                Log.e(TAG, e.getMessage(), e);
-            }
-            mmSocket = tmp;
-        }
-
-        public void run() {
-            Log.i(TAG, "BEGIN mConnectThread");
-            setName("ConnectThread");
-
-            // Always cancel discovery because it will slow down a connection
-            mAdapter.cancelDiscovery();
-
-            // Make a connection to the BluetoothSocket
-            try {
-                // This is a blocking call and will only return on a
-                // successful connection or an exception
-                mmSocket.connect();
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage(), e);
-                connectionFailed();
-                try {
-                    mmSocket.close();
-                } catch (IOException e2) {
-                    Log.e(TAG, "unable to close() socket during connection failure", e2);
-                }
-                return;
-            }
-
-            // Reset the ConnectThread because we're done
-            synchronized (BluetoothDeviceConnector.this) {
-                mConnectThread = null;
-            }
-
-            // Start the connected thread
-            connected(mmSocket, mmDevice);
-        }
-
-        public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "close() of connect socket failed", e);
-            }
-        }
-    }
-
-    /**
-     * This thread runs during a connection with a remote device.
-     * It handles all incoming and outgoing transmissions.
-     */
-    private class ConnectedThread extends Thread {
-        private final BluetoothSocket mmSocket;
-        private final InputStream mmInStream;
-        private final OutputStream mmOutStream;
-        private boolean stop = false;
-        private boolean hasReadAnything = false;
-
-        public ConnectedThread(BluetoothSocket socket) {
-            Log.d(TAG, "create ConnectedThread");
-            mmSocket = socket;
-            InputStream tmpIn = null;
-            OutputStream tmpOut = null;
-
-            // Get the BluetoothSocket input and output streams
-            try {
-                tmpIn = socket.getInputStream();
-                tmpOut = socket.getOutputStream();
-            } catch (IOException e) {
-                Log.e(TAG, "temp sockets not created", e);
-            }
-
-            mmInStream = tmpIn;
-            mmOutStream = tmpOut;
-        }
-
-        public void shutdown() {
-            stop = true;
-            if (!hasReadAnything) return;
-            if (mmInStream != null) {
-                try {
-                    mmInStream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "close() of InputStream failed.");
-                }
-            }
-        }
-
-        public void run() {
-            Log.i(TAG, "BEGIN mConnectedThread");
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(mmInStream));
-
-            while (!stop) {
-                try {
-                    String line = reader.readLine();
-                    if (line != null) {
-                        mHandler.sendLineRead(line);
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "disconnected", e);
-                    connectionLost();
-                    break;
-                }
-            }
-        }
-
-        /**
-         * Write to the connected OutStream.
-         *
-         * @param bytes The bytes to write
-         */
-        public void write(byte[] bytes) {
-            try {
-                mmOutStream.write(bytes);
-                mHandler.sendBytesWritten(bytes);
-            } catch (IOException e) {
-                Log.e(TAG, "Exception during write", e);
-            }
-        }
-
-        public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "close() of connect socket failed", e);
-            }
-        }
     }
 }
