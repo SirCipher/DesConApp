@@ -41,6 +41,7 @@ import com.type2labs.dmm.bluetooth.MessageHandler;
 import com.type2labs.dmm.bluetooth.MessageHandlerImpl;
 import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
+import com.type2labs.dmm.utils.ValueUtils;
 
 import java.util.Random;
 
@@ -80,7 +81,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Graphing
     private GraphView graph;
     private boolean graphEnabled = false;
-    private Graph graphUtil;
+    private TextView.OnEditorActionListener mWriteListener =
+            new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
+                        sendMessage(view.getText());
+                    }
+                    return true;
+                }
+            };
+    private LineGraphSeries<DataPoint> series;
+    private int lastX = 0;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -126,25 +137,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if (recordingEnabled) {
                         recording.append(line).append("\n");
                     }
-                    graphUtil.addData(line);
+                    if (ValueUtils.isValue(line)) {
+                        try {
+                            Double data = Double.parseDouble(ValueUtils.getValue(line));
+                            Log.d("Graph: Adding: ", Double.toString(data));
+
+                            series.appendData(new DataPoint(lastX++, data), true, 10);
+                        } catch (NumberFormatException e) {
+                            // Die quietly pls
+                            // TODO: Sometimes a number format exception will be thrown by unexpected data
+                        }
+                    }
                     break;
             }
         }
     };
-    private TextView.OnEditorActionListener mWriteListener =
-            new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-                        sendMessage(view.getText());
-                    }
-                    return true;
-                }
-            };
-    private LineGraphSeries<DataPoint> series;
-
-    private void addDataToGraph() {
-
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -165,8 +172,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void initGraph() {
         graph = (GraphView) findViewById(R.id.graph);
-        series = new LineGraphSeries<>();
-        graphUtil = new Graph(graph, series);
+
+        series = new LineGraphSeries<DataPoint>();
+        graph.addSeries(series);
+        // customize a little bit viewport
+//        Viewport viewport = graph.getViewport();
+//        viewport.setYAxisBoundsManual(true);
+//        viewport.setMinY(0);
+//        viewport.setMaxY(10);
+//        viewport.setScrollable(true);
+
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(4);
+
     }
 
     @Override
@@ -178,22 +197,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void run() {
                 // we add 100 new entries
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        graphUtil.addRandom();
-                    }
-                });
+                for (int i = 0; i < 100; i++) {
+                    runOnUiThread(new Runnable() {
 
-                // sleep to slow down the add of entries
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    // manage error ...
+                        @Override
+                        public void run() {
+                            addEntry();
+                        }
+                    });
+
+                    // sleep to slow down the add of entries
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        // manage error ...
+                    }
                 }
             }
-        }
-        ).start();
+        }).start();
+    }
+
+    // add random data to graph
+    private void addEntry() {
+        // here, we choose to display max 10 points on the viewport and we scroll to end
+        series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), true, 10);
     }
 
     private void initUI() {

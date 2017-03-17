@@ -15,7 +15,7 @@ public class ValueUtils {
         Dies quietly if unable to extract the value
      */
     public static String getValue(String reading) {
-        String value = "";
+        String value = "0";
         try {
             value = reading.substring(reading.indexOf("<") + 1);
 
@@ -41,5 +41,9 @@ public class ValueUtils {
             Log.d("ValueUtils", "Units not found");
         }
         return units;
+    }
+
+    public static boolean isValue(String value) {
+        return getUnits(value).equals("Amps") || getUnits(value).equals("Volts") || getUnits(value).equals("Ohms");
     }
 }
