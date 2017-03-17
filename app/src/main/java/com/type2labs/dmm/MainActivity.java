@@ -19,7 +19,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -51,12 +50,11 @@ import com.type2labs.dmm.bluetooth.DeviceConnector;
 import com.type2labs.dmm.bluetooth.ListDevicesActivity;
 import com.type2labs.dmm.bluetooth.MessageHandler;
 import com.type2labs.dmm.bluetooth.MessageHandlerImpl;
-import com.type2labs.dmm.bluetooth.MockByLineConnector;
 import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
 
 
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final boolean D = true;
@@ -171,12 +169,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                return false;
-            }
-        });
+        navigationView.setNavigationItemSelectedListener(this);
 
         updateParamsFromSettings();
 
@@ -294,20 +287,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     ListDevicesActivity.ConnectorType connectorType =
                             (ListDevicesActivity.ConnectorType) data.getSerializableExtra(connectorTypeMsgId);
                     MessageHandler messageHandler = new MessageHandlerImpl(mHandler);
-                    switch (connectorType) {
-                        case Mock:
-                            String filenameMsgId = ListDevicesActivity.Message.MockFilename.toString();
-                            String filename = data.getStringExtra(filenameMsgId);
-                            mDeviceConnector = new MockByLineConnector(messageHandler, getAssets(), filename);
-                            break;
-                        case Bluetooth:
                             String addressMsgId = ListDevicesActivity.Message.BluetoothAddress.toString();
                             String address = data.getStringExtra(addressMsgId);
                             mDeviceConnector = new BluetoothDeviceConnector(messageHandler, address);
-                            break;
-                        default:
-                            return;
-                    }
                     mDeviceConnector.connect();
                 }
                 break;
@@ -367,10 +349,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private void startActivityForResult(Class<?> cls, int requestCode) {
         Intent intent = new Intent(getApplicationContext(), cls);
         startActivityForResult(intent, requestCode);
-    }
-
-    private void openURL(String url) {
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
     private void disconnectDevices() {
@@ -436,5 +414,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     protected void onPause() {
         getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 }
