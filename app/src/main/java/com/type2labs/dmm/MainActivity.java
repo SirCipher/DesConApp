@@ -1,28 +1,12 @@
-/*
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
-*/
-
 package com.type2labs.dmm;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -32,15 +16,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,7 +38,6 @@ import com.type2labs.dmm.bluetooth.MessageHandler;
 import com.type2labs.dmm.bluetooth.MessageHandlerImpl;
 import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
-
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -88,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean recordingEnabled = false;
     private boolean mockDevicesEnabled;
     private String deviceName;
+
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -169,12 +156,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-//        Switch recordingSwitch = (Switch) findViewById(R.id.toggle_logging);
-//        recordingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                recordingEnabled = isChecked;
-//            }
-//        });
+        Menu menuNav = navigationView.getMenu();
+        Switch toggleEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_logging_switch);
+        toggleEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                recordingEnabled = isChecked;
+            }
+        });
 
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
@@ -207,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.activity_message);
+        mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.activity_message);
         ListView mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
 
@@ -314,11 +303,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void startActivityForResult(Class<?> cls, int requestCode) {
-        Intent intent = new Intent(getApplicationContext(), cls);
-        startActivityForResult(intent, requestCode);
-    }
-
     private void disconnectDevices() {
         mDeviceConnector.disconnect();
         onBluetoothStateChanged();
@@ -339,6 +323,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void onPausedStateChanged() {
+        requestEnableBluetooth();
+
         if (connected) {
             if (paused) {
                 mToolbarPlayButton.setVisibility(View.VISIBLE);
@@ -358,11 +344,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d(TAG, "++onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
-    }
-
-
-    private SharedPreferences getSharedPreferences() {
-        return PreferenceManager.getDefaultSharedPreferences(this);
     }
 
     @Override
