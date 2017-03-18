@@ -137,12 +137,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if (recordingEnabled) {
                         recording.append(line).append("\n");
                     }
+
+                    // TODO: Tidy this up. Move to the Graph class.
                     if (ValueUtils.isValue(line)) {
                         try {
                             Double data = Double.parseDouble(ValueUtils.getValue(line));
                             Log.d("Graph: Adding: ", Double.toString(data));
 
-                            series.appendData(new DataPoint(lastX++, data), true, 10);
+                            series.appendData(new DataPoint(lastX++, data), true, 100);
                         } catch (NumberFormatException e) {
                             // Die quietly pls
                             // TODO: Sometimes a number format exception will be thrown by unexpected data
@@ -156,25 +158,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initGraph() {
         graph = (GraphView) findViewById(R.id.graph);
 
-        series = new LineGraphSeries<DataPoint>();
+        series = new LineGraphSeries<>();
         graph.addSeries(series);
-        // customize a little bit viewport
-//        Viewport viewport = graph.getViewport();
-//        viewport.setYAxisBoundsManual(true);
-//        viewport.setMinY(0);
-//        viewport.setMaxY(10);
-//        viewport.setScrollable(true);
-
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(4);
-
-    }
-
-    // add random data to graph
-    private void addEntry() {
-        // here, we choose to display max 10 points on the viewport and we scroll to end
-        series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), true, 10);
+        graph.getViewport().setMaxX(100);
     }
 
     private void initUI() {
@@ -382,30 +370,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        // we're going to simulate real time with thread that append data to the graph
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                // we add 100 new entries
-                for (int i = 0; i < 100; i++) {
-                    runOnUiThread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            addEntry();
-                        }
-                    });
-
-                    // sleep to slow down the add of entries
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        // manage error ...
-                    }
-                }
-            }
-        }).start();
     }
 
     @Override
