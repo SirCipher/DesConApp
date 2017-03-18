@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Graphing
     private GraphView graph;
     private boolean graphEnabled = false;
+
     private TextView.OnEditorActionListener mWriteListener =
             new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
@@ -90,8 +93,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     return true;
                 }
             };
+
     private LineGraphSeries<DataPoint> series;
     private int lastX = 0;
+    private long startTime = SystemClock.currentThreadTimeMillis();
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -130,39 +135,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.i(TAG, "written = '" + written + "'");
                     break;
                 case MessageHandler.MSG_LINE_READ:
-                    if (paused) break;
-                    String line = (String) msg.obj;
-                    if (D) Log.d(TAG, line);
-                    mConversationArrayAdapter.add(line);
-                    if (recordingEnabled) {
-                        recording.append(line).append("\n");
-                    }
-
-                    // TODO: Tidy this up. Move to the Graph class.
-                    if (ValueUtils.isValue(line)) {
-                        try {
-                            Double data = Double.parseDouble(ValueUtils.getValue(line));
-                            Log.d("Graph: Adding: ", Double.toString(data));
-
-                            series.appendData(new DataPoint(lastX++, data), true, 100);
-                        } catch (NumberFormatException e) {
-                            // Die quietly pls
-                            // TODO: Sometimes a number format exception will be thrown by unexpected data
-                        }
-                    }
+                    readBTData(msg);
                     break;
             }
         }
     };
+    private long currentTime = 0;
+
+    private void readBTData(Message msg) {
+        if (paused) return;
+        String line = (String) msg.obj;
+
+        if (D) Log.d(TAG, line);
+
+        mConversationArrayAdapter.add(ValueUtils.getValue(line) + " " + ValueUtils.getUnits(line));
+
+        if (recordingEnabled) {
+            recording.append(line).append("\n");
+        }
+
+        // TODO: Tidy this up. Move to the Graph class.
+        if (ValueUtils.isValue(line)) {
+            try {
+                Double data = Double.parseDouble(ValueUtils.getValue(line));
+                Log.d("Graph: Adding: ", Double.toString(data));
+
+                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 1000);
+            } catch (NumberFormatException e) {
+                // Die quietly
+            }
+        }
+    }
 
     private void initGraph() {
         graph = (GraphView) findViewById(R.id.graph);
 
         series = new LineGraphSeries<>();
+        series.setBackgroundColor(Color.parseColor("#BCD2EE"));
+        series.setDrawBackground(true);
+        series.setThickness(8);
+        graph.getGridLabelRenderer().setLabelVerticalWidth(130);
+
         graph.addSeries(series);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(100);
+        graph.getViewport().setMaxX(1000);
     }
 
     private void initUI() {
@@ -394,11 +411,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
         mDeviceConnector.disconnect();
     }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
