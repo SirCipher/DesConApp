@@ -149,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean backgroundEnabled = false;
     private int timePerDiv = 500;
     private int voltsPerDiv = 500;
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     private int graphTime(boolean reset) {
         if (reset) {
@@ -414,6 +415,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "++onCreate");
         super.onCreate(savedInstanceState);
+        registerOnSharedPreferenceChangeListener();
 
         // Disable landscape
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -486,9 +488,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        updateParamsFromSettings();
-        Log.d(TAG, "++onSharedPreferenceChanged");
-        Log.d(TAG, "" + backgroundEnabled + " " + timePerDiv + " " + voltsPerDiv);
     }
 
     private void updateParamsFromSettings() {
@@ -496,5 +495,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         timePerDiv = getSharedPreferences().getInt(getString(R.string.setting_time_div), 500);
         voltsPerDiv = getSharedPreferences().getInt(getString(R.string.setting_volts_div), 500);
         graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
+    }
+
+    private void registerOnSharedPreferenceChangeListener() {
+
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                updateParamsFromSettings();
+                Log.d(TAG, "++onSharedPreferenceChanged");
+                Log.d(TAG, "" + backgroundEnabled + " " + timePerDiv + " " + voltsPerDiv);
+            }
+        };
+        getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
+
     }
 }
