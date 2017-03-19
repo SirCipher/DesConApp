@@ -15,25 +15,23 @@
     <!--android:title="@string/title_default_email" />-->
 
     <CheckBoxPreference
-        android:checked="false"
-        android:key="@string/pref_background"
+        android:checked="true"
+        android:defaultValue="true"
+        android:key="@string/setting_background"
         android:summary="@string/settings_background_description"
-        android:title="@string/settings_background" />
+        android:title="@string/settings_background_title" />
 
     <EditTextPreference
-        android:checked="false"
-        android:key="setting_volts_per_div"
-        android:numeric="decimal"
+        android:key="@string/setting_volts_div"
+        android:numeric="integer"
         android:phoneNumber="false"
         android:summary="@string/setting_volts_div_description"
         android:title="@string/setting_volts_div_title" />
     <EditTextPreference
-        android:checked="false"
         android:key="@string/setting_time_div"
-        android:numeric="decimal"
+        android:numeric="integer"
         android:phoneNumber="false"
         android:summary="@string/setting_time_div_description"
         android:title="@string/setting_time_div_title" />
-
 
 </PreferenceScreen>

@@ -146,6 +146,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
     private long currentTime = 0;
+    private boolean backgroundEnabled = false;
+    private int timePerDiv = 500;
+    private int voltsPerDiv = 500;
 
     private int graphTime(boolean reset) {
         if (reset) {
@@ -397,8 +400,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onPause() {
-        getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
+        getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -425,6 +428,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initUI();
         initGraph();
         onBluetoothStateChanged();
+        updateParamsFromSettings();
     }
 
     @Override
@@ -434,7 +438,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private SharedPreferences getSharedPreferences() {
-
         return PreferenceManager.getDefaultSharedPreferences(this);
     }
 
@@ -483,14 +486,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        updateParamsFromSettings();
         Log.d(TAG, "++onSharedPreferenceChanged");
-//        if (prefName.equals(getString(R.string.pref_record))) {
-//            updateParamsFromSettings();
-//        }
+        Log.d(TAG, "" + backgroundEnabled + " " + timePerDiv + " " + voltsPerDiv);
     }
 
     private void updateParamsFromSettings() {
-        recordingEnabled = getSharedPreferences().getBoolean(getString(R.string.pref_record), false);
-
+        graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
+        timePerDiv = getSharedPreferences().getInt(getString(R.string.setting_time_div), 500);
+        voltsPerDiv = getSharedPreferences().getInt(getString(R.string.setting_volts_div), 500);
+        graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
     }
 }
