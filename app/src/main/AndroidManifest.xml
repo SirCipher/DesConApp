@@ -26,7 +26,7 @@
             android:label="@string/title_select_device"
             android:theme="@android:style/Theme.Dialog" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".GraphSettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_settings_activity"
             android:theme="@android:style/Theme.Dialog" />

@@ -54,5 +54,14 @@
     <string name="nav_data_logging">Data logging</string>
     <string name="nav_chart_realtime">Real-time graph</string>
     <string name="title_graph_activity">Graph</string>
+    <string name="nav_settings_string">Graph Settings</string>
+    <string name="pref_background">Graph Background Enabled</string>
+    <string name="settings_background">Enable background</string>
+    <string name="settings_background_description">Fills in the graph with a light blue coloring</string>
+    <string name="setting_volts_div_title">Volts/Div</string>
+    <string name="setting_volts_div_description">Sets the amount of Volts per division</string>
+    <string name="setting_time_div">setting_time_div</string>
+    <string name="setting_time_div_description">Sets the amount of time per division</string>
+    <string name="setting_time_div_title">Time/Div</string>
 
 </resources>

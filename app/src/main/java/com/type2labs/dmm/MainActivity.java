@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -48,7 +50,7 @@ import com.type2labs.dmm.utils.ValueUtils;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final boolean D = true;
@@ -395,12 +397,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onPause() {
+        getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -429,11 +433,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDeviceConnector.disconnect();
     }
 
+    private SharedPreferences getSharedPreferences() {
+
+        return PreferenceManager.getDefaultSharedPreferences(this);
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "++onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
+    }
+
+    private void startActivityForResult(Class<?> cls, int requestCode) {
+        Intent intent = new Intent(getApplicationContext(), cls);
+        startActivityForResult(intent, requestCode);
     }
 
     @Override
@@ -447,6 +461,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_voltage:
                 sendMessage("Volts");
+                break;
+            case R.id.nav_graph_settings:
+                startActivityForResult(GraphSettingsActivity.class, MENU_SETTINGS);
                 break;
             case R.id.menu_email_recorded_data:
                 if (recording.length() > 0 && recordingEnabled) {
@@ -462,5 +479,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Log.d(TAG, "++onSharedPreferenceChanged");
+//        if (prefName.equals(getString(R.string.pref_record))) {
+//            updateParamsFromSettings();
+//        }
+    }
+
+    private void updateParamsFromSettings() {
+        recordingEnabled = getSharedPreferences().getBoolean(getString(R.string.pref_record), false);
+
     }
 }
