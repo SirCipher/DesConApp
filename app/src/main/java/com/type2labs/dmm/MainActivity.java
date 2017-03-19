@@ -85,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private GraphView graph;
     private boolean graphEnabled = false;
 
+    private DrawerLayout drawerLayout;
+
     private TextView.OnEditorActionListener mWriteListener =
             new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
@@ -257,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 recordingEnabled = isChecked;
+                drawerLayout.closeDrawer(GravityCompat.START);
                 Log.d("MainActivity", "Recording: " + recordingEnabled);
             }
         });
@@ -266,9 +269,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 graphEnabled = isChecked;
                 graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
+                drawerLayout.closeDrawer(GravityCompat.START);
                 Log.d("MainActivity", "Graphing: " + recordingEnabled);
             }
         });
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     }
 
     private void startDeviceListActivity() {
@@ -403,8 +408,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d(TAG, "++onCreate");
         super.onCreate(savedInstanceState);
 
+        // Disable landscape
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
 
         if (savedInstanceState != null) {
             pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
@@ -433,7 +438,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         switch (item.getItemId()) {
             case R.id.nav_current:
                 sendMessage("Amps");
