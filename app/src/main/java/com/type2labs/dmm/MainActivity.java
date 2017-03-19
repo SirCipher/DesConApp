@@ -147,8 +147,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     };
     private long currentTime = 0;
     private boolean backgroundEnabled = false;
-    private int timePerDiv = 500;
-    private int voltsPerDiv = 500;
+    private double timePerDiv = 500;
+    private double voltsPerDiv = 500;
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
     private int graphTime(boolean reset) {
@@ -369,10 +369,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivityForResult(intent, requestCode);
     }
 
+    private double checkParam(String toCheck, String key) {
+        if (toCheck.equals("")) {
+            toCheck = "500";
+            SharedPreferences.Editor editor = getSharedPreferences().edit();
+            editor.putFloat(key, 500);
+            editor.apply();
+        }
+        return Double.parseDouble(toCheck);
+    }
+
     private void updateParamsFromSettings() {
         graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
-        timePerDiv = getSharedPreferences().getInt(getString(R.string.setting_time_div), 500);
-        voltsPerDiv = getSharedPreferences().getInt(getString(R.string.setting_volts_div), 500);
+        timePerDiv = checkParam(getSharedPreferences().getString(getString(R.string.setting_time_div), Integer.toString(500)), "setting_time_div");
+        voltsPerDiv = checkParam(getSharedPreferences().getString(getString(R.string.setting_volts_div), Integer.toString(500)), "setting_volts_div");
         graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
     }
 
@@ -387,19 +397,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         };
         getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
-
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.i(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
             case REQUEST_CONNECT_DEVICE:
-                // When DeviceListActivity returns with connection info to connect devices
-                // TODO it would be better to return a Parcelable instance of a DeviceConnector,
-                //      as in the current approach both the sender and the receiver must know
-                //      how to create a DeviceConnector from its pieces (constructor args).
-                //      It would be better if that logic was in one place,
-                //      and definitely not in this activity
+
                 if (resultCode == Activity.RESULT_OK) {
                     String connectorTypeMsgId = ListDevicesActivity.Message.DeviceConnectorType.toString();
                     ListDevicesActivity.ConnectorType connectorType =
