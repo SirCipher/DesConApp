@@ -8,13 +8,13 @@ import java.util.Set;
 
 public class NullWrapper implements AdapterWrapper {
     @Override
-    public Set<BluetoothDevice> getBondedDevices() {
-        return Collections.emptySet();
+    public void cancelDiscovery() {
+        // nothing to cancel
     }
 
     @Override
-    public void cancelDiscovery() {
-        // nothing to cancel
+    public Set<BluetoothDevice> getBondedDevices() {
+        return Collections.emptySet();
     }
 
     @Override

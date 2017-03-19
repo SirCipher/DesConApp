@@ -360,6 +360,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private SharedPreferences getSharedPreferences() {
+        return PreferenceManager.getDefaultSharedPreferences(this);
+    }
+
+    private void startActivityForResult(Class<?> cls, int requestCode) {
+        Intent intent = new Intent(getApplicationContext(), cls);
+        startActivityForResult(intent, requestCode);
+    }
+
+    private void updateParamsFromSettings() {
+        graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
+        timePerDiv = getSharedPreferences().getInt(getString(R.string.setting_time_div), 500);
+        voltsPerDiv = getSharedPreferences().getInt(getString(R.string.setting_volts_div), 500);
+        graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
+    }
+
+    private void registerOnSharedPreferenceChangeListener() {
+
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                updateParamsFromSettings();
+                Log.d(TAG, "++onSharedPreferenceChanged");
+                Log.d(TAG, "" + backgroundEnabled + " " + timePerDiv + " " + voltsPerDiv);
+            }
+        };
+        getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
+
+    }
+
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.i(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
@@ -439,20 +469,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDeviceConnector.disconnect();
     }
 
-    private SharedPreferences getSharedPreferences() {
-        return PreferenceManager.getDefaultSharedPreferences(this);
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "++onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
-    }
-
-    private void startActivityForResult(Class<?> cls, int requestCode) {
-        Intent intent = new Intent(getApplicationContext(), cls);
-        startActivityForResult(intent, requestCode);
     }
 
     @Override
@@ -488,26 +509,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-    }
-
-    private void updateParamsFromSettings() {
-        graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
-        timePerDiv = getSharedPreferences().getInt(getString(R.string.setting_time_div), 500);
-        voltsPerDiv = getSharedPreferences().getInt(getString(R.string.setting_volts_div), 500);
-        graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
-    }
-
-    private void registerOnSharedPreferenceChangeListener() {
-
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-                updateParamsFromSettings();
-                Log.d(TAG, "++onSharedPreferenceChanged");
-                Log.d(TAG, "" + backgroundEnabled + " " + timePerDiv + " " + voltsPerDiv);
-            }
-        };
-        getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
-
     }
 }
