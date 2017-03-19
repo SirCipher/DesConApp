@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -142,6 +143,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     };
     private long currentTime = 0;
 
+    private int graphTime(boolean reset) {
+        if (reset) {
+
+        }
+        return 0;
+    }
+
     private void readBTData(Message msg) {
         if (paused) return;
         String line = (String) msg.obj;
@@ -160,7 +168,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Double data = Double.parseDouble(ValueUtils.getValue(line));
                 Log.d("Graph: Adding: ", Double.toString(data));
 
-                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 1000);
+
+                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 500);
             } catch (NumberFormatException e) {
                 // Die quietly
             }
@@ -179,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         graph.addSeries(series);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(1000);
+        graph.getViewport().setMaxX(500);
     }
 
     private void initUI() {
@@ -393,6 +402,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "++onCreate");
         super.onCreate(savedInstanceState);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
 
         if (savedInstanceState != null) {
             pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
