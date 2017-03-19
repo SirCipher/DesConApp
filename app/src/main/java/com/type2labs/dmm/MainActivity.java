@@ -275,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 graphEnabled = isChecked;
                 graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Log.d("MainActivity", "Graphing: " + recordingEnabled);
+                Log.d("MainActivity", "Graphing: " + graphEnabled);
             }
         });
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
