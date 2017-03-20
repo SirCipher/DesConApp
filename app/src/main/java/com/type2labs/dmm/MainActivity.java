@@ -381,13 +381,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void updateParamsFromSettings() {
         graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
-        timePerDiv = checkParam(getSharedPreferences().getString(getString(R.string.setting_time_div), Integer.toString(500)), "setting_time_div");
-        voltsPerDiv = checkParam(getSharedPreferences().getString(getString(R.string.setting_volts_div), Integer.toString(500)), "setting_volts_div");
+        String time = getSharedPreferences().getString(getString(R.string.setting_time_div), "500");
+        String volts = getSharedPreferences().getString(getString(R.string.setting_volts_div), "500");
+
+        timePerDiv = checkParam(time, "setting_time_div");
+        voltsPerDiv = checkParam(volts, "setting_volts_div");
+
         graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
     }
 
     private void registerOnSharedPreferenceChangeListener() {
-
         listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
