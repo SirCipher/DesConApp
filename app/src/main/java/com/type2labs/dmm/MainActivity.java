@@ -381,8 +381,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void updateParamsFromSettings() {
         graphEnabled = getSharedPreferences().getBoolean(getString(R.string.setting_background), false);
-        String time = getSharedPreferences().getString(getString(R.string.setting_time_div), "500");
-        String volts = getSharedPreferences().getString(getString(R.string.setting_volts_div), "500");
+
+        String time, volts;
+        try {
+            time = getSharedPreferences().getString(getString(R.string.setting_time_div), "500");
+        } catch (ClassCastException e) {
+            time = "500";
+        }
+        try {
+            volts = getSharedPreferences().getString(getString(R.string.setting_volts_div), "500");
+        } catch (ClassCastException e) {
+            volts = "500";
+        }
 
         timePerDiv = checkParam(time, "setting_time_div");
         voltsPerDiv = checkParam(volts, "setting_volts_div");
