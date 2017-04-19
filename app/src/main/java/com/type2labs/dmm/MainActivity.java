@@ -48,8 +48,6 @@ import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
 import com.type2labs.dmm.utils.ValueUtils;
 
-import java.util.Random;
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -62,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int MENU_SETTINGS = 4;
 
     private static final String SAVED_PENDING_REQUEST_ENABLE_BT = "PENDING_REQUEST_ENABLE_BT";
-    private static final Random RANDOM = new Random();
     private final StringBuilder recording = new StringBuilder();
     // Layout Views
     private TextView mStatusView;
@@ -75,32 +72,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageButton mToolbarPlayButton;
     private ArrayAdapter<String> mConversationArrayAdapter;
     private DeviceConnector mDeviceConnector = new NullConnector();
+
     // State variables
     private boolean paused = false;
     private boolean connected = false;
     private boolean pendingRequestEnableBt = false;
+
     // controlled by user settings
     private boolean recordingEnabled = false;
     private boolean mockDevicesEnabled;
     private String deviceName;
+
     // Graphing
     private GraphView graph;
     private boolean graphEnabled = false;
-
-    private DrawerLayout drawerLayout;
-
-    private TextView.OnEditorActionListener mWriteListener =
-            new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-                        sendMessage(view.getText());
-                    }
-                    return true;
-                }
-            };
-
     private LineGraphSeries<DataPoint> series;
-    private int lastX = 0;
     private long startTime = SystemClock.currentThreadTimeMillis();
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
@@ -109,14 +95,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             switch (msg.what) {
                 case MessageHandler.MSG_CONNECTED:
                     connected = true;
-                    mStatusView.setText(formatStatusMessage(R.string.btstatus_connected_to_fmt, msg.obj));
                     onBluetoothStateChanged();
                     recording.setLength(0);
                     deviceName = msg.obj.toString();
                     break;
                 case MessageHandler.MSG_CONNECTING:
                     connected = false;
-                    mStatusView.setText(formatStatusMessage(R.string.btstatus_connecting_to_fmt, msg.obj));
                     onBluetoothStateChanged();
                     break;
                 case MessageHandler.MSG_NOT_CONNECTED:
@@ -146,23 +130,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
     private long currentTime = 0;
-    private boolean backgroundEnabled = false;
     private double timePerDiv = 500;
     private double voltsPerDiv = 500;
-    private SharedPreferences.OnSharedPreferenceChangeListener listener;
+    private DrawerLayout drawerLayout;
+    private TextView.OnEditorActionListener mWriteListener =
+            new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
+                        sendMessage(view.getText());
+                    }
+                    return true;
+                }
+            };
+    private boolean backgroundEnabled = false;
+    private Handler handler = new Handler();
+    private String graphXlabel;
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - startTime;
+            int seconds = (int) millis / 1000;
+            int minutes = seconds / 60;
 
-    private int graphTime(boolean reset) {
-        if (reset) {
-
+            handler.postDelayed(this, 500);
+            graphXlabel = String.format("%d:%02d", minutes, seconds);
         }
-        return 0;
-    }
+    };
 
     private void readBTData(Message msg) {
-        if (paused) return;
+        if (paused) {
+            return;
+        }
+
         String line = (String) msg.obj;
 
-        if (D) Log.d(TAG, line);
+        if (D) {
+            Log.d(TAG, line);
+        }
 
         mConversationArrayAdapter.add(ValueUtils.getValue(line) + " " + ValueUtils.getUnits(line));
 
@@ -174,10 +178,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (ValueUtils.isValue(line)) {
             try {
                 Double data = Double.parseDouble(ValueUtils.getValue(line));
+
                 Log.d("Graph: Adding: ", Double.toString(data));
 
-
-                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 500);
+                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 5000);
+//                series.appendData(new DataPoint(graphXlabel, data), true, 500);
             } catch (NumberFormatException e) {
                 // Die quietly
             }
@@ -185,18 +190,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void initGraph() {
-        graph = (GraphView) findViewById(R.id.graph);
-
         series = new LineGraphSeries<>();
         series.setBackgroundColor(Color.parseColor("#BCD2EE"));
         series.setDrawBackground(true);
         series.setThickness(8);
-        graph.getGridLabelRenderer().setLabelVerticalWidth(130);
 
+        graph = (GraphView) findViewById(R.id.graph);
+        graph.getGridLabelRenderer().setLabelVerticalWidth(130);
         graph.addSeries(series);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(500);
+        graph.getViewport().setMaxX(1000);
+        graph.getViewport().setMinY(10);
     }
 
     private void initUI() {
@@ -279,7 +284,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.d("MainActivity", "Graphing: " + graphEnabled);
             }
         });
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     }
 
     private void startDeviceListActivity() {
@@ -401,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void registerOnSharedPreferenceChangeListener() {
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 updateParamsFromSettings();
