@@ -3,7 +3,6 @@ package com.type2labs.dmm;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.type2labs.dmm.utils.ValueUtils;
 
 import java.util.Random;
 
@@ -25,7 +24,7 @@ public class Graph {
     }
 
     void addData(String value) {
-        series.appendData(new DataPoint(lastX++, Double.parseDouble(ValueUtils.getValue(value))), true, 10);
+//        series.appendData(new DataPoint(lastX++, Double.parseDouble(ValueUtils.getValue(value))), true, 10);
     }
 
     void addRandom() {

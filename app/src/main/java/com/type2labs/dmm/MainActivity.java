@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -36,6 +35,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -46,7 +46,9 @@ import com.type2labs.dmm.bluetooth.MessageHandler;
 import com.type2labs.dmm.bluetooth.MessageHandlerImpl;
 import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
-import com.type2labs.dmm.utils.ValueUtils;
+import com.type2labs.dmm.utils.Value;
+
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -87,7 +89,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private GraphView graph;
     private boolean graphEnabled = false;
     private LineGraphSeries<DataPoint> series;
-    private long startTime = SystemClock.currentThreadTimeMillis();
+    private double timePerDiv = 500;
+    private double voltsPerDiv = 500;
+    private DrawerLayout drawerLayout;
+    private TextView.OnEditorActionListener mWriteListener =
+            new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
+                        sendMessage(view.getText());
+                    }
+                    return true;
+                }
+            };
+    private boolean backgroundEnabled = false;
+    private long startTime;
+    private Value value;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -129,63 +145,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
-    private long currentTime = 0;
-    private double timePerDiv = 500;
-    private double voltsPerDiv = 500;
-    private DrawerLayout drawerLayout;
-    private TextView.OnEditorActionListener mWriteListener =
-            new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-                        sendMessage(view.getText());
-                    }
-                    return true;
-                }
-            };
-    private boolean backgroundEnabled = false;
-    private Handler handler = new Handler();
-    private String graphXlabel;
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            long millis = System.currentTimeMillis() - startTime;
-            int seconds = (int) millis / 1000;
-            int minutes = seconds / 60;
-
-            handler.postDelayed(this, 500);
-            graphXlabel = String.format("%d:%02d", minutes, seconds);
-        }
-    };
 
     private void readBTData(Message msg) {
         if (paused) {
             return;
         }
 
-        String line = (String) msg.obj;
+        String receivedData = (String) msg.obj;
 
         if (D) {
-            Log.d(TAG, line);
+            Log.d(TAG, receivedData);
         }
 
-        mConversationArrayAdapter.add(ValueUtils.getValue(line) + " " + ValueUtils.getUnits(line));
+        if (!value.getDaRegex(receivedData)) {
+            mConversationArrayAdapter.add(receivedData);
+        } else {
+            double receivedValue = value.getValue() * Math.pow(10.0, value.getScale());
 
-        if (recordingEnabled) {
-            recording.append(line).append("\n");
-        }
+            mConversationArrayAdapter.add(value.toString());
 
-        // TODO: Tidy this up. Move to the Graph class.
-        if (ValueUtils.isValue(line)) {
-            try {
-                Double data = Double.parseDouble(ValueUtils.getValue(line));
-
-                Log.d("Graph: Adding: ", Double.toString(data));
-
-                series.appendData(new DataPoint((int) (SystemClock.currentThreadTimeMillis() - startTime), data), true, 5000);
-//                series.appendData(new DataPoint(graphXlabel, data), true, 500);
-            } catch (NumberFormatException e) {
-                // Die quietly
+            if (recordingEnabled) {
+                recording.append(receivedData).append("\n");
             }
+
+            long time = (new Date()).getTime();
+
+            series.appendData(new DataPoint((time - startTime), receivedValue), true, 10000);
         }
     }
 
@@ -197,11 +182,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         graph = (GraphView) findViewById(R.id.graph);
         graph.getGridLabelRenderer().setLabelVerticalWidth(130);
+
+        graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                if (isValueX) {
+                    return super.formatLabel((value / 1000), isValueX) + "s";
+                } else {
+                    return super.formatLabel(value, isValueX);
+                }
+            }
+        });
+
         graph.addSeries(series);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(1000);
+        graph.getViewport().setMaxX(10000);
         graph.getViewport().setMinY(10);
+        graph.getViewport().setScalable(true);
     }
 
     private void initUI() {
@@ -339,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mToolbarConnectButton.setVisibility(View.GONE);
             mToolbarDisconnectButton.setVisibility(View.VISIBLE);
             mSendTextContainer.setVisibility(View.VISIBLE);
+            startTime = (new Date()).getTime();
         } else {
             mToolbarConnectButton.setVisibility(View.VISIBLE);
             mToolbarDisconnectButton.setVisibility(View.GONE);
@@ -482,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initGraph();
         onBluetoothStateChanged();
         updateParamsFromSettings();
+        value = new Value();
     }
 
     @Override
