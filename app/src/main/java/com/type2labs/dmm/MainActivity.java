@@ -284,6 +284,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.d("MainActivity", "Graphing: " + graphEnabled);
             }
         });
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     }
 
     private void startDeviceListActivity() {
@@ -443,7 +444,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, R.string.msg_email_sent, Toast.LENGTH_LONG).show();
                 } else {
-                    // TODO resultCode is NEVER ok, even when email successfully sent :(
                     //Toast.makeText(this, R.string.msg_email_not_sent, Toast.LENGTH_LONG).show();
                 }
                 break;
