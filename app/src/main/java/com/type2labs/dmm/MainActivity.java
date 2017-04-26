@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
     private void initGraph() {
         series = new LineGraphSeries<>();
         series.setBackgroundColor(Color.parseColor("#BCD2EE"));
