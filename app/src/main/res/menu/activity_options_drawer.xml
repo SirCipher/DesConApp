@@ -31,9 +31,17 @@
             android:icon="@android:drawable/ic_menu_save"
             android:title="@string/nav_data_logging"
             app:actionLayout="@layout/switch_item" />
+
+        <item
+            android:id="@+id/toggle_list"
+            android:icon="@drawable/ic_list_black_24dp"
+            android:title="@string/toggle_log"
+            app:actionLayout="@layout/switch_item"/>
+
         <item
             android:id="@+id/nav_graph_settings"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="@string/nav_settings_string" />
+            android:title="@string/nav_settings_string"
+            app:actionLayout="@layout/switch_item"/>
     </group>
 </menu>

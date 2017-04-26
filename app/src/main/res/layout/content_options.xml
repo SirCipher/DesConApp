@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
     </android.support.design.widget.AppBarLayout>
 
@@ -28,50 +28,117 @@
         android:ellipsize="end"
         android:gravity="end"
         android:maxLines="1"
-        android:text="@string/btstatus_not_connected" />
+        android:text="@string/btstatus_not_connected"/>
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="200dip"
-        android:visibility="gone" />
-
-    <ListView
-        android:id="@+id/in"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll" />
-
-    <TextView
-        android:id="@+id/msg_welcome"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:linksClickable="true"
-        android:padding="5dp"
-        android:textSize="18sp" />
+        android:visibility="gone"/>
 
     <LinearLayout
-        android:id="@+id/send_text_container"
+        android:id="@+id/group_measurements"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Voltage: "
+                android:textSize="22sp"/>
+
+            <TextView
+                android:id="@+id/view_voltage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorAccent"
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current: "
+                android:textSize="22sp"/>
+
+            <TextView
+                android:id="@+id/view_current"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resistance: "
+                android:textSize="22sp"/>
+
+            <TextView
+                android:id="@+id/view_resistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
+        android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/edit_text_out"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
+        <ListView
+            android:id="@+id/in"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:inputType="text" />
+            android:stackFromBottom="true"
+            android:transcriptMode="alwaysScroll"
+            android:visibility="invisible"/>
 
-        <Button
-            android:id="@+id/button_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/send" />
+        <LinearLayout
+            android:id="@+id/send_text_container"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/edit_text_out"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="1"
+                android:inputType="text"/>
+
+            <Button
+                android:id="@+id/button_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:text="@string/send"/>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -84,28 +151,28 @@
             style="@style/toolbarButton"
             android:src="@drawable/ic_bluetooth_connected_black_24dp"
             android:visibility="gone"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/toolbar_btn_disconnect"
             style="@style/toolbarButton"
             android:src="@drawable/ic_bluetooth_disabled_black_24dp"
             android:visibility="gone"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/toolbar_btn_pause"
             style="@style/toolbarButton"
             android:src="@drawable/ic_pause_black_24dp"
             android:visibility="gone"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/toolbar_btn_play"
             style="@style/toolbarButton"
             android:src="@drawable/ic_play_arrow_black_24dp"
             android:visibility="gone"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -48,6 +48,8 @@ import com.type2labs.dmm.bluetooth.NullConnector;
 import com.type2labs.dmm.utils.EmailUtils;
 import com.type2labs.dmm.utils.Value;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -67,12 +69,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView mStatusView;
     private EditText mOutEditText;
     private View mSendTextContainer;
+    private ArrayAdapter<String> mConversationArrayAdapter;
     // Toolbar
     private ImageButton mToolbarConnectButton;
     private ImageButton mToolbarDisconnectButton;
     private ImageButton mToolbarPauseButton;
     private ImageButton mToolbarPlayButton;
-    private ArrayAdapter<String> mConversationArrayAdapter;
     private DeviceConnector mDeviceConnector = new NullConnector();
 
     // State variables
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean backgroundEnabled = false;
     private long startTime;
     private Value value;
+    private float resistance, voltage, current;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -171,6 +174,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             long time = (new Date()).getTime();
 
             series.appendData(new DataPoint((time - startTime), receivedValue), true, 10000);
+
+            if (value.getUnits() == 'A') {
+//                mCurrentView.setText(Float.toString(value.getValue()) + "A");
+                current = value.getValue();
+            }
+
+            if (value.getUnits() == 'V') {
+//                mVoltageView.setText(Float.toString(value.getValue()) + "V");
+                voltage = value.getValue();
+            }
+            resistance = voltage / current;
+
+            DecimalFormat df = new DecimalFormat("##.###");
+            df.setRoundingMode(RoundingMode.HALF_UP);
+
+//            mResistanceView.setText(df.format(resistance) + "Ω");
         }
     }
 
@@ -202,7 +221,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         graph.getViewport().setScalable(true);
     }
 
+//    private TextView mCurrentView;
+//    private TextView mResistanceView;
+//    private TextView mVoltageView;
+
     private void initUI() {
+
+//        mCurrentView = (TextView) findViewById(R.id.value_current);
+//        mResistanceView = (TextView) findViewById(R.id.value_resistance);
+//        mVoltageView = (TextView) findViewById(R.id.value_voltage);
+
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
 
@@ -232,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 onPausedStateChanged();
             }
         });
+
         mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.activity_message);
         ListView mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
@@ -248,15 +277,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 sendMessage(view.getText());
             }
         });
+
+        setLogVisibility(false);
     }
 
     private void initNav() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.setDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -282,7 +313,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.d("MainActivity", "Graphing: " + graphEnabled);
             }
         });
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        final Switch logEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_list).getActionView().findViewById(R.id.toggle_switch_item);
+        logEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                setLogVisibility(isChecked);
+                Log.d(TAG, "Setting log visibility to " + isChecked);
+            }
+        });
+    }
+
+    private void setLogVisibility(boolean visibility) {
+        if (visibility) {
+            findViewById(R.id.group_measurements).setVisibility(View.GONE);
+            findViewById(R.id.in).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.group_measurements).setVisibility(View.VISIBLE);
+            findViewById(R.id.in).setVisibility(View.INVISIBLE);
+        }
     }
 
     private void startDeviceListActivity() {
