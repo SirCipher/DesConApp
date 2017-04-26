@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private long startTime;
     private Value value;
     private float resistance, voltage, current;
+    private int currentMode = 0;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -149,6 +150,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
+    private void changeMode(int mode) {
+        currentMode = mode;
+
+        Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[mode], Toast.LENGTH_SHORT).show();
+    }
+
     private void readBTData(Message msg) {
         if (paused) {
             return;
@@ -161,7 +168,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (!value.getDaRegex(receivedData)) {
-            mConversationArrayAdapter.add(receivedData);
+            if (receivedData.startsWith("m")) {
+                changeMode(Integer.parseInt(receivedData.substring(2)));
+            } else {
+                mConversationArrayAdapter.add(receivedData);
+            }
+
         } else {
             double receivedValue = value.getValue() * Math.pow(10.0, value.getScale());
 
@@ -225,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //    private TextView mResistanceView;
 //    private TextView mVoltageView;
 
+
+    // TODO: Add these TextViews back in.
     private void initUI() {
 
 //        mCurrentView = (TextView) findViewById(R.id.value_current);
