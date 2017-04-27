@@ -21,6 +21,6 @@ public class Constants {
     public static final int[] MODES = {MODE_VOLTAGE, MODE_CURRENT, MODE_RESISTANCE, MODE_LIGHT, MODE_CONTINUITY, MODE_TRANSISTOR,
             MODE_DIODE, MODE_CAPACITOR, MODE_INDUCTOR, MODE_RMS, MODE_FREQUENCY, MODE_SIGGEN};
 
-    public static final String[] MODES_STRING = {"Voltage", "Current", "Resistance", "Light", "Continuity", "Transistor",
+    static final String[] MODES_STRING = {"Voltage", "Current", "Resistance", "Light", "Continuity", "Transistor",
             "Diode", "Capacitance", "Inductance", "RMS", "Frequency", "Sig-Gen"};
 }

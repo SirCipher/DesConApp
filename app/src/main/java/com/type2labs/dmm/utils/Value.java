@@ -25,9 +25,7 @@ public class Value {
     }
 
     public Boolean getDaRegex(String message) {
-
         Pattern r = Pattern.compile(pattern);
-
         Matcher matcher = r.matcher(message);
 
         if (matcher.find()) {
