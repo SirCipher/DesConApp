@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_menu">
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      android:id="@+id/drawer_menu">
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_current"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_current" />
+            android:title="@string/nav_current"/>
         <item
             android:id="@+id/nav_resistance"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_resistance" />
+            android:title="@string/nav_resistance"/>
         <item
             android:id="@+id/nav_voltage"
             android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_voltage" />
+            android:title="@string/nav_voltage"/>
         <item
             android:id="@+id/menu_email_recorded_data"
             android:icon="@android:drawable/ic_dialog_email"
-            android:title="@string/menu_email_recorded_data" />
+            android:title="@string/menu_email_recorded_data"/>
         <item
             android:id="@+id/toggle_graph"
             android:icon="@drawable/ic_multiline_chart_black_24dp"
             android:title="@string/nav_chart_realtime"
-            app:actionLayout="@layout/switch_item" />
+            app:actionLayout="@layout/switch_item"/>
 
         <item
             android:id="@+id/toggle_logging"
             android:icon="@android:drawable/ic_menu_save"
             android:title="@string/nav_data_logging"
-            app:actionLayout="@layout/switch_item" />
+            app:actionLayout="@layout/switch_item"/>
 
         <item
             android:id="@+id/toggle_list"
