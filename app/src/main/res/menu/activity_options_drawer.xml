@@ -22,12 +22,14 @@
             android:title="@string/menu_email_recorded_data"/>
         <item
             android:id="@+id/toggle_graph"
+            android:checked="true"
             android:icon="@drawable/ic_multiline_chart_black_24dp"
             android:title="@string/nav_chart_realtime"
             app:actionLayout="@layout/switch_item"/>
 
         <item
             android:id="@+id/toggle_logging"
+            android:checked="true"
             android:icon="@android:drawable/ic_menu_save"
             android:title="@string/nav_data_logging"
             app:actionLayout="@layout/switch_item"/>
@@ -41,7 +43,6 @@
         <item
             android:id="@+id/nav_graph_settings"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="@string/nav_settings_string"
-            app:actionLayout="@layout/switch_item"/>
+            android:title="@string/nav_settings_string"/>
     </group>
 </menu>

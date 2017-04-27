@@ -51,8 +51,7 @@ public class EmailUtils {
 
     private static String getPackageInfoString(Context context) {
         PackageInfo info = getPackageInfo(context);
-        return String.format("[App: %s Version: %d/%s]",
-                context.getPackageName(), info.versionCode, info.versionName);
+        return String.format("[App: %s Version: %d/%s]", context.getPackageName(), info.versionCode, info.versionName);
     }
 
     private static PackageInfo getPackageInfo(Context context) {

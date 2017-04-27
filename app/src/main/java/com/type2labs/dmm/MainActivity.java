@@ -292,7 +292,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        setLogVisibility(false);
+        // Enable logging layout.
+        setLogVisibility(true);
     }
 
     private void initNav() {
@@ -308,8 +309,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         Menu menuNav = navigationView.getMenu();
-        Switch toggleEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
-        toggleEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        Switch toggleLoggingEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
+        toggleLoggingEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 recordingEnabled = isChecked;
@@ -333,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 setLogVisibility(isChecked);
+                drawerLayout.closeDrawer(GravityCompat.START);
                 Log.d(TAG, "Setting log visibility to " + isChecked);
             }
         });
@@ -538,7 +540,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         setContentView(R.layout.activity_main);
-
         initNav();
         initUI();
         initGraph();
