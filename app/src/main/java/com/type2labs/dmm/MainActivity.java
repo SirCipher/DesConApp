@@ -55,7 +55,7 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final boolean D = true;
+    private static final boolean debugEnabled = true;
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case MessageHandler.MSG_CONNECTED:
                     connected = true;
                     onBluetoothStateChanged();
+                    mStatusView.setText(R.string.btstatus_connected_to_fmt);
                     recording.setLength(0);
                     deviceName = msg.obj.toString();
                     break;
@@ -151,8 +152,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     };
 
     private void changeMode(int mode) {
-        currentMode = mode;
+        if (currentMode == mode) return;
 
+        ((TextView) findViewById(R.id.current_mode)).setText("Current mode: " + Constants.MODES_STRING[mode]);
+
+        currentMode = mode;
         Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[mode], Toast.LENGTH_SHORT).show();
     }
 
@@ -163,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         String receivedData = (String) msg.obj;
 
-        if (D) {
+        if (debugEnabled) {
             Log.d(TAG, receivedData);
         }
 

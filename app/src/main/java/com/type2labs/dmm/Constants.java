@@ -23,4 +23,5 @@ public class Constants {
 
     static final String[] MODES_STRING = {"Voltage", "Current", "Resistance", "Light", "Continuity", "Transistor",
             "Diode", "Capacitance", "Inductance", "RMS", "Frequency", "Sig-Gen"};
+
 }
