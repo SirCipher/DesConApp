@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Value value;
     private float resistance, voltage, current;
     private int currentMode = 0;
-
+    private DrawerLayout mDrawerLayout;
     //    private TextView mCurrentView;
 //    private TextView mResistanceView;
 //    private TextView mVoltageView;
@@ -156,8 +156,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
-
-    private DrawerLayout mDrawerLayout;
+    private boolean loggingEnabled = true;
+    private boolean dataLogging = true;
+    private ListView mConversationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,8 +248,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case "Data logging":
                 break;
             case "Toggle Log":
+                loggingEnabled = !loggingEnabled;
+                setLogVisibility(loggingEnabled);
                 break;
             case "Real-time graph":
+                graphEnabled = !graphEnabled;
+                graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
 
                 break;
             case "Graph Settings":
@@ -307,9 +312,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
         }
 
-
         ((TextView) findViewById(R.id.current_mode)).setText("Current mode: " + Constants.MODES_STRING[currentMode]);
         Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[currentMode], Toast.LENGTH_SHORT).show();
+        mDrawerLayout.closeDrawers();
     }
 
     private void readBTData(Message msg) {
@@ -427,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.activity_message);
-        ListView mConversationView = (ListView) findViewById(R.id.in);
+        mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
 
         // Initialize the compose field with a listener for the return key
