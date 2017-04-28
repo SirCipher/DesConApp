@@ -309,7 +309,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         ((TextView) findViewById(R.id.current_mode)).setText("Current mode: " + Constants.MODES_STRING[currentMode]);
-
         Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[currentMode], Toast.LENGTH_SHORT).show();
     }
 
