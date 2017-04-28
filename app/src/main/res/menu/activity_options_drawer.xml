@@ -5,18 +5,6 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_current"
-            android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_current"/>
-        <item
-            android:id="@+id/nav_resistance"
-            android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_resistance"/>
-        <item
-            android:id="@+id/nav_voltage"
-            android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="@string/nav_voltage"/>
-        <item
             android:id="@+id/menu_email_recorded_data"
             android:icon="@android:drawable/ic_dialog_email"
             android:title="@string/menu_email_recorded_data"/>

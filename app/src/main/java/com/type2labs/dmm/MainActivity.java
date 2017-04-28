@@ -20,18 +20,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Switch;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,7 +49,10 @@ import com.type2labs.dmm.utils.Value;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -65,6 +67,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String SAVED_PENDING_REQUEST_ENABLE_BT = "PENDING_REQUEST_ENABLE_BT";
     private final StringBuilder recording = new StringBuilder();
+    ExpandableListAdapter mMenuAdapter;
+    ExpandableListView expandableList;
+    List<ExpandedMenuModel> listDataHeader;
+    HashMap<ExpandedMenuModel, List<String>> listDataChild;
     // Layout Views
     private TextView mStatusView;
     private EditText mOutEditText;
@@ -76,17 +82,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageButton mToolbarPauseButton;
     private ImageButton mToolbarPlayButton;
     private DeviceConnector mDeviceConnector = new NullConnector();
-
     // State variables
     private boolean paused = false;
     private boolean connected = false;
     private boolean pendingRequestEnableBt = false;
-
     // controlled by user settings
     private boolean recordingEnabled = false;
     private boolean mockDevicesEnabled;
     private String deviceName;
-
     // Graphing
     private GraphView graph;
     private boolean graphEnabled = false;
@@ -108,6 +111,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Value value;
     private float resistance, voltage, current;
     private int currentMode = 0;
+
+    //    private TextView mCurrentView;
+//    private TextView mResistanceView;
+//    private TextView mVoltageView;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -150,6 +157,169 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
+    private Spinner mContinuitySpinner, mMeasurementSpinner;
+
+    //    private void initNav() {
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
+//
+//        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//        drawerLayout.setDrawerListener(toggle);
+//        toggle.syncState();
+//
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        navigationView.setNavigationItemSelectedListener(this);
+//
+//        Menu menuNav = navigationView.getMenu();
+//        Switch toggleLoggingEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
+//        toggleLoggingEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                recordingEnabled = isChecked;
+//                drawerLayout.closeDrawer(GravityCompat.START);
+//                Log.d("MainActivity", "Recording: " + recordingEnabled);
+//            }
+//        });
+//        Switch graphEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_graph).getActionView().findViewById(R.id.toggle_switch_item);
+//        graphEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                graphEnabled = isChecked;
+//                graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
+//                drawerLayout.closeDrawer(GravityCompat.START);
+//                Log.d("MainActivity", "Graphing: " + graphEnabled);
+//            }
+//        });
+//
+//        final Switch logEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_list).getActionView().findViewById(R.id.toggle_switch_item);
+//        logEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                setLogVisibility(isChecked);
+//                drawerLayout.closeDrawer(GravityCompat.START);
+//                Log.d(TAG, "Setting log visibility to " + isChecked);
+//            }
+//        });
+//
+//        mContinuitySpinner = (Spinner) navigationView.getMenu().findItem(R.id.drawer_spinner_continuity).getActionView();
+//
+//        List<String> continuityList = new ArrayList<>();
+//        continuityList.add("Continuity");
+//        continuityList.add("Transistor");
+//        continuityList.add("Diode");
+//
+//        ArrayAdapter<String> continuityAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, continuityList);
+//        continuityAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+//        mContinuitySpinner.setAdapter(continuityAdapter);
+//        mContinuitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
+//
+//        mMeasurementSpinner = (Spinner) navigationView.getMenu().findItem(R.id.drawer_spinner_measurements).getActionView();
+//
+//        List<String> measurementList = new ArrayList<>();
+//        measurementList.add("Voltage");
+//        measurementList.add("Current");
+//        measurementList.add("Resistance");
+//        measurementList.add("Inductance");
+//        measurementList.add("Capacitance");
+//
+//        ArrayAdapter<String> measurementAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, measurementList);
+//        measurementAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+//        mMeasurementSpinner.setAdapter(measurementAdapter);
+//        mMeasurementSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//
+//            }
+//        });
+//
+//    }
+    private DrawerLayout mDrawerLayout;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "++onCreate");
+        registerOnSharedPreferenceChangeListener();
+
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Disable landscape
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        if (savedInstanceState != null) {
+            pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
+        }
+
+        /* to set the menu icon image*/
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        expandableList = (ExpandableListView) findViewById(R.id.navigationmenu);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        if (navigationView != null) {
+            setupDrawerContent(navigationView);
+        }
+
+        prepareListData();
+        mMenuAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild, expandableList);
+
+        // setting list adapter
+        expandableList.setAdapter(mMenuAdapter);
+        expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
+                //Log.d("DEBUG", "submenu item clicked");
+                return false;
+            }
+        });
+        expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
+                //Log.d("DEBUG", "heading clicked");
+                return false;
+            }
+        });
+
+        initUI();
+        initGraph();
+        onBluetoothStateChanged();
+        updateParamsFromSettings();
+        value = new Value();
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawerLayout.setDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mDeviceConnector.disconnect();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "++onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
+    }
 
     private void changeMode(int mode) {
         if (currentMode == mode) return;
@@ -237,11 +407,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         graph.getViewport().setScalable(true);
     }
 
-//    private TextView mCurrentView;
-//    private TextView mResistanceView;
-//    private TextView mVoltageView;
-
-
     // TODO: Add these TextViews back in.
     private void initUI() {
 
@@ -298,50 +463,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Enable logging layout.
         setLogVisibility(true);
-    }
-
-    private void initNav() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        Menu menuNav = navigationView.getMenu();
-        Switch toggleLoggingEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
-        toggleLoggingEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                recordingEnabled = isChecked;
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Log.d("MainActivity", "Recording: " + recordingEnabled);
-            }
-        });
-        Switch graphEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_graph).getActionView().findViewById(R.id.toggle_switch_item);
-        graphEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                graphEnabled = isChecked;
-                graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Log.d("MainActivity", "Graphing: " + graphEnabled);
-            }
-        });
-
-        final Switch logEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_list).getActionView().findViewById(R.id.toggle_switch_item);
-        logEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                setLogVisibility(isChecked);
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Log.d(TAG, "Setting log visibility to " + isChecked);
-            }
-        });
     }
 
     private void setLogVisibility(boolean visibility) {
@@ -437,6 +558,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return PreferenceManager.getDefaultSharedPreferences(this);
     }
 
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//
+//        initNav();
+//
+//    }
+
     private void startActivityForResult(Class<?> cls, int requestCode) {
         Intent intent = new Intent(getApplicationContext(), cls);
         startActivityForResult(intent, requestCode);
@@ -485,6 +614,62 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
     }
 
+    private void prepareListData() {
+        listDataHeader = new ArrayList<>();
+        listDataChild = new HashMap<>();
+
+        ExpandedMenuModel menu_modes = new ExpandedMenuModel();
+        menu_modes.setIconName("Measurements");
+        menu_modes.setIconImg(android.R.drawable.ic_menu_manage);
+        // Adding data header
+        listDataHeader.add(menu_modes);
+
+        ExpandedMenuModel menu_continuity = new ExpandedMenuModel();
+        menu_continuity.setIconName("Continuity");
+        menu_continuity.setIconImg(android.R.drawable.ic_menu_edit);
+        listDataHeader.add(menu_continuity);
+
+        ExpandedMenuModel menu_settings = new ExpandedMenuModel();
+        menu_settings.setIconName("Settings");
+        menu_settings.setIconImg(R.drawable.ic_settings_black_24dp);
+        listDataHeader.add(menu_settings);
+
+        // Adding child data
+        List<String> headings_measurements = new ArrayList<>();
+        headings_measurements.add("Voltage");
+        headings_measurements.add("Current");
+        headings_measurements.add("Resistance");
+
+        List<String> headings_continuity = new ArrayList<>();
+        headings_continuity.add("Continuity");
+        headings_continuity.add("Diode");
+        headings_continuity.add("Transistor");
+
+        List<String> headings_settings = new ArrayList<>();
+        headings_settings.add("Email data");
+        headings_settings.add("Data logging");
+        headings_settings.add("Toggle Log");
+        headings_settings.add("Real-time graph");
+        headings_settings.add("Graph Settings");
+
+        listDataChild.put(listDataHeader.get(0), headings_measurements);// Header, Child data
+        listDataChild.put(listDataHeader.get(1), headings_continuity);
+        listDataChild.put(listDataHeader.get(2), headings_settings);
+    }
+
+    private void setupDrawerContent(NavigationView navigationView) {
+        //revision: this don't works, use setOnChildClickListener() and setOnGroupClickListener() above instead
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setChecked(true);
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
+    }
+
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.i(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
@@ -531,52 +716,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "++onCreate");
-        super.onCreate(savedInstanceState);
-        registerOnSharedPreferenceChangeListener();
-
-        // Disable landscape
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        if (savedInstanceState != null) {
-            pendingRequestEnableBt = savedInstanceState.getBoolean(SAVED_PENDING_REQUEST_ENABLE_BT);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
         }
-
-        setContentView(R.layout.activity_main);
-        initNav();
-        initUI();
-        initGraph();
-        onBluetoothStateChanged();
-        updateParamsFromSettings();
-        value = new Value();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDeviceConnector.disconnect();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "++onSaveInstanceState");
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.nav_current:
-                sendMessage("Amps");
-                break;
-            case R.id.nav_resistance:
-                sendMessage("Resistance");
-                break;
-            case R.id.nav_voltage:
-                sendMessage("Volts");
-                break;
+//            case R.id.nav_current:
+//                sendMessage("Amps");
+//                break;
+//            case R.id.nav_resistance:
+//                sendMessage("Resistance");
+//                break;
+//            case R.id.nav_voltage:
+//                sendMessage("Volts");
+//                break;
             case R.id.nav_graph_settings:
                 startActivityForResult(GraphSettingsActivity.class, MENU_SETTINGS);
                 break;
