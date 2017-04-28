@@ -30,7 +30,6 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -157,98 +156,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
-    private Spinner mContinuitySpinner, mMeasurementSpinner;
 
-    //    private void initNav() {
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//
-//        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//        drawerLayout.setDrawerListener(toggle);
-//        toggle.syncState();
-//
-//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-//        navigationView.setNavigationItemSelectedListener(this);
-//
-//        Menu menuNav = navigationView.getMenu();
-//        Switch toggleLoggingEnabled = (Switch) menuNav.findItem(R.id.toggle_logging).getActionView().findViewById(R.id.toggle_switch_item);
-//        toggleLoggingEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                recordingEnabled = isChecked;
-//                drawerLayout.closeDrawer(GravityCompat.START);
-//                Log.d("MainActivity", "Recording: " + recordingEnabled);
-//            }
-//        });
-//        Switch graphEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_graph).getActionView().findViewById(R.id.toggle_switch_item);
-//        graphEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                graphEnabled = isChecked;
-//                graph.setVisibility(graphEnabled ? View.VISIBLE : View.GONE);
-//                drawerLayout.closeDrawer(GravityCompat.START);
-//                Log.d("MainActivity", "Graphing: " + graphEnabled);
-//            }
-//        });
-//
-//        final Switch logEnabledSwitch = (Switch) menuNav.findItem(R.id.toggle_list).getActionView().findViewById(R.id.toggle_switch_item);
-//        logEnabledSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                setLogVisibility(isChecked);
-//                drawerLayout.closeDrawer(GravityCompat.START);
-//                Log.d(TAG, "Setting log visibility to " + isChecked);
-//            }
-//        });
-//
-//        mContinuitySpinner = (Spinner) navigationView.getMenu().findItem(R.id.drawer_spinner_continuity).getActionView();
-//
-//        List<String> continuityList = new ArrayList<>();
-//        continuityList.add("Continuity");
-//        continuityList.add("Transistor");
-//        continuityList.add("Diode");
-//
-//        ArrayAdapter<String> continuityAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, continuityList);
-//        continuityAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
-//        mContinuitySpinner.setAdapter(continuityAdapter);
-//        mContinuitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//
-//            }
-//        });
-//
-//        mMeasurementSpinner = (Spinner) navigationView.getMenu().findItem(R.id.drawer_spinner_measurements).getActionView();
-//
-//        List<String> measurementList = new ArrayList<>();
-//        measurementList.add("Voltage");
-//        measurementList.add("Current");
-//        measurementList.add("Resistance");
-//        measurementList.add("Inductance");
-//        measurementList.add("Capacitance");
-//
-//        ArrayAdapter<String> measurementAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, measurementList);
-//        measurementAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
-//        mMeasurementSpinner.setAdapter(measurementAdapter);
-//        mMeasurementSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//
-//            }
-//        });
-//
-//    }
     private DrawerLayout mDrawerLayout;
 
     @Override
@@ -285,15 +193,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         expandableList.setAdapter(mMenuAdapter);
         expandableList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
-            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-                //Log.d("DEBUG", "submenu item clicked");
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long l) {
+                String position = (String) mMenuAdapter.getChild(groupPosition, childPosition);
+                if (groupPosition <= 1) changeMode(position);
+                else changeSetting(position);
                 return false;
             }
+
+
         });
         expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                //Log.d("DEBUG", "heading clicked");
+
                 return false;
             }
         });
@@ -321,13 +233,84 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         outState.putBoolean(SAVED_PENDING_REQUEST_ENABLE_BT, pendingRequestEnableBt);
     }
 
-    private void changeMode(int mode) {
-        if (currentMode == mode) return;
+    private void changeSetting(String position) {
+        switch (position) {
+            case "Email data":
+                if (recording.length() > 0 && recordingEnabled) {
+                    launchEmailApp(EmailUtils.prepareDeviceRecording(this, deviceName, recording.toString()));
+                } else if (recordingEnabled) {
+                    Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, R.string.msg_nothing_recorded_recording_disabled, Toast.LENGTH_LONG).show();
+                }
+                break;
+            case "Data logging":
+                break;
+            case "Toggle Log":
+                break;
+            case "Real-time graph":
 
-        ((TextView) findViewById(R.id.current_mode)).setText("Current mode: " + Constants.MODES_STRING[mode]);
+                break;
+            case "Graph Settings":
+                startActivityForResult(GraphSettingsActivity.class, MENU_SETTINGS);
+                break;
+        }
 
-        currentMode = mode;
-        Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[mode], Toast.LENGTH_SHORT).show();
+    }
+
+    private void changeMode(String mode) {
+        switch (mode) {
+            case "Voltage":
+                currentMode = 0;
+                sendMessage("Volts");
+                break;
+            case "Current":
+                currentMode = 1;
+                sendMessage("Amps");
+                break;
+            case "Resistance":
+                currentMode = 2;
+                sendMessage("Res");
+                break;
+            case "Continuity":
+                currentMode = 4;
+                sendMessage("Cont");
+                break;
+            case "Transistor":
+                currentMode = 5;
+                sendMessage("Trans");
+                break;
+            case "Diode":
+                currentMode = 6;
+                sendMessage("Dio");
+                break;
+            case "Capacitance":
+                currentMode = 7;
+                sendMessage("Cap");
+                break;
+            case "Inductance":
+                currentMode = 8;
+                sendMessage("Ind");
+                break;
+            case "RMS":
+                currentMode = 9;
+                sendMessage("Rms");
+                break;
+            case "Frequency":
+                currentMode = 10;
+                sendMessage("Freq");
+                break;
+            case "Sig-Gen":
+                currentMode = 11;
+                break;
+            default:
+                break;
+        }
+
+
+        ((TextView) findViewById(R.id.current_mode)).setText("Current mode: " + Constants.MODES_STRING[currentMode]);
+
+        Toast.makeText(this, "Mode changed to: " + Constants.MODES_STRING[currentMode], Toast.LENGTH_SHORT).show();
     }
 
     private void readBTData(Message msg) {
@@ -343,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (!value.getDaRegex(receivedData)) {
             if (receivedData.startsWith("m")) {
-                changeMode(Integer.parseInt(receivedData.substring(2)));
+                changeMode(receivedData.substring(2));
             } else {
                 mConversationArrayAdapter.add(receivedData);
             }
@@ -558,14 +541,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return PreferenceManager.getDefaultSharedPreferences(this);
     }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//
-//        initNav();
-//
-//    }
-
     private void startActivityForResult(Class<?> cls, int requestCode) {
         Intent intent = new Intent(getApplicationContext(), cls);
         startActivityForResult(intent, requestCode);
@@ -639,6 +614,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         headings_measurements.add("Voltage");
         headings_measurements.add("Current");
         headings_measurements.add("Resistance");
+        headings_measurements.add("Capacitance");
+        headings_measurements.add("Inductance");
+        headings_measurements.add("RMS");
+        headings_measurements.add("Frequency");
 
         List<String> headings_continuity = new ArrayList<>();
         headings_continuity.add("Continuity");
@@ -727,34 +706,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-//            case R.id.nav_current:
-//                sendMessage("Amps");
-//                break;
-//            case R.id.nav_resistance:
-//                sendMessage("Resistance");
-//                break;
-//            case R.id.nav_voltage:
-//                sendMessage("Volts");
-//                break;
-            case R.id.nav_graph_settings:
-                startActivityForResult(GraphSettingsActivity.class, MENU_SETTINGS);
-                break;
-            case R.id.menu_email_recorded_data:
-                if (recording.length() > 0 && recordingEnabled) {
-                    launchEmailApp(EmailUtils.prepareDeviceRecording(this, deviceName, recording.toString()));
-                } else if (recordingEnabled) {
-                    Toast.makeText(this, R.string.msg_nothing_recorded, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, R.string.msg_nothing_recorded_recording_disabled, Toast.LENGTH_LONG).show();
-                }
-                break;
-            default:
-                break;
-        }
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
+        return false;
     }
+
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
