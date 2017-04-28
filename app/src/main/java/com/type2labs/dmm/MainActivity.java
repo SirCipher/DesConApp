@@ -111,9 +111,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private float resistance, voltage, current;
     private int currentMode = 0;
     private DrawerLayout mDrawerLayout;
-    //    private TextView mCurrentView;
-//    private TextView mResistanceView;
-//    private TextView mVoltageView;
+    private TextView mCurrentView;
+    private TextView mResistanceView;
+    private TextView mVoltageView;
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -158,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     };
     private boolean loggingEnabled = true;
     private boolean dataLogging = true;
-    private ListView mConversationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -349,12 +348,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             series.appendData(new DataPoint((time - startTime), receivedValue), true, 10000);
 
             if (value.getUnits() == 'A') {
-//                mCurrentView.setText(Float.toString(value.getValue()) + "A");
+                mCurrentView.setText(Float.toString(value.getValue()) + "A");
                 current = value.getValue();
             }
 
             if (value.getUnits() == 'V') {
-//                mVoltageView.setText(Float.toString(value.getValue()) + "V");
+                mVoltageView.setText(Float.toString(value.getValue()) + "V");
                 voltage = value.getValue();
             }
             resistance = voltage / current;
@@ -362,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             DecimalFormat df = new DecimalFormat("##.###");
             df.setRoundingMode(RoundingMode.HALF_UP);
 
-//            mResistanceView.setText(df.format(resistance) + "Ω");
+            mResistanceView.setText(df.format(resistance) + "Ω");
         }
     }
 
@@ -397,9 +396,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // TODO: Add these TextViews back in.
     private void initUI() {
 
-//        mCurrentView = (TextView) findViewById(R.id.value_current);
-//        mResistanceView = (TextView) findViewById(R.id.value_resistance);
-//        mVoltageView = (TextView) findViewById(R.id.value_voltage);
+        mCurrentView = (TextView) findViewById(R.id.view_current);
+        mResistanceView = (TextView) findViewById(R.id.view_resistance);
+        mVoltageView = (TextView) findViewById(R.id.view_voltage);
 
         mStatusView = (TextView) findViewById(R.id.btstatus);
         mSendTextContainer = findViewById(R.id.send_text_container);
@@ -432,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         mConversationArrayAdapter = new ArrayAdapter<>(this, R.layout.activity_message);
-        mConversationView = (ListView) findViewById(R.id.in);
+        ListView mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
 
         // Initialize the compose field with a listener for the return key
