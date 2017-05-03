@@ -145,12 +145,12 @@ public class ListDevicesActivity extends Activity {
         this.unregisterReceiver(mReceiver);
     }
 
-    public static enum ConnectorType {
+    public enum ConnectorType {
         Bluetooth,
         Mock
     }
 
-    public static enum Message {
+    public enum Message {
         DeviceConnectorType,
         BluetoothAddress,
         MockFilename,

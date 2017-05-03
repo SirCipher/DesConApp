@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean connected = false;
     private boolean pendingRequestEnableBt = false;
     // controlled by user settings
-    private boolean recordingEnabled = false;
+    private boolean recordingEnabled = true;
     private boolean mockDevicesEnabled;
     private String deviceName;
     // Graphing
@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView mCurrentView;
     private TextView mResistanceView;
     private TextView mVoltageView;
+
     // The Handler that gets information back from the BluetoothService
     private final Handler mHandler = new Handler() {
         @Override
@@ -247,8 +248,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case "Data logging":
                 break;
             case "Toggle Log":
-                loggingEnabled = !loggingEnabled;
-                setLogVisibility(loggingEnabled);
+                recordingEnabled = !recordingEnabled;
+                setLogVisibility(recordingEnabled);
                 break;
             case "Real-time graph":
                 graphEnabled = !graphEnabled;
@@ -393,7 +394,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         graph.getViewport().setScalable(true);
     }
 
-    // TODO: Add these TextViews back in.
     private void initUI() {
 
         mCurrentView = (TextView) findViewById(R.id.view_current);
