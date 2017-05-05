@@ -328,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d(TAG, receivedData);
         }
 
-        if (!value.getDaRegex(receivedData)) {
+        if (!value.splitMessage(receivedData)) {
             if (receivedData.startsWith("m")) {
                 changeMode(receivedData.substring(2));
             } else {

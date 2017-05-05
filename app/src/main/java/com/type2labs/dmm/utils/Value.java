@@ -24,7 +24,19 @@ public class Value {
         df.setRoundingMode(RoundingMode.HALF_UP);
     }
 
-    public Boolean getDaRegex(String message) {
+    public double getScale() {
+        return scale;
+    }
+
+    public char getUnits() {
+        return unit;
+    }
+
+    public float getValue() {
+        return value;
+    }
+
+    public Boolean splitMessage(String message) {
         Pattern r = Pattern.compile(pattern);
         Matcher matcher = r.matcher(message);
 
@@ -36,18 +48,6 @@ public class Value {
         } else {
             return false;
         }
-    }
-
-    public double getScale() {
-        return scale;
-    }
-
-    public char getUnits() {
-        return unit;
-    }
-
-    public float getValue() {
-        return value;
     }
 
     public String toString() {
